@@ -18,6 +18,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Tuple, Dict, List
 import json
+from scipy.io import wavfile
 
 
 # ============================================================================
@@ -81,7 +82,7 @@ def load_imu_file(filepath: Path) -> pd.DataFrame:
         required_cols = ['recv_ts', 'label']
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
-            print(f"  ✗ Missing columns in {filepath.name}: {missing_cols}")
+            print(f"  [ERR] Missing columns in {filepath.name}: {missing_cols}")
             return None
         
         # Sort by timestamp
@@ -90,11 +91,11 @@ def load_imu_file(filepath: Path) -> pd.DataFrame:
         # Convert recv_ts to milliseconds for easier window calculation
         df['ts_ms'] = (df['recv_ts'] * 1000).astype(int)
         
-        print(f"  ✓ Loaded {filepath.name}: {len(df)} samples")
+        print(f"  [OK] Loaded {filepath.name}: {len(df)} samples")
         return df
     
     except Exception as e:
-        print(f"  ✗ Error loading {filepath.name}: {e}")
+        print(f"  [ERR] Error loading {filepath.name}: {e}")
         return None
 
 
@@ -200,50 +201,68 @@ def create_imu_windows(df_imu: pd.DataFrame) -> Dict[str, List[Dict]]:
 # AUDIO WINDOWING FUNCTIONS
 # ============================================================================
 
-def load_audio_file(filepath: Path) -> pd.DataFrame:
-    """Load and validate audio CSV file."""
+def load_audio_wav(filepath: Path, imu_start_ts_ms: int, sync_offset_sec: float = 3.857) -> Tuple[np.ndarray, int, pd.DataFrame]:
+    """
+    Load and synchronize audio WAV file with IMU timestamps.
+    
+    The sync_video.py script trims both audio and IMU by 3.857 seconds.
+    This function loads the WAV file and generates timestamps aligned with IMU.
+    
+    Args:
+        filepath: Path to audio WAV file
+        imu_start_ts_ms: Start timestamp of IMU data (in milliseconds)
+        sync_offset_sec: Synchronization offset applied in sync_video.py
+    
+    Returns:
+        (audio_data, sample_rate, df_with_timestamps)
+    """
     try:
-        df = pd.read_csv(filepath)
+        sample_rate, audio_data = wavfile.read(filepath)
         
-        # Audio files typically have timestamp and audio sample columns
-        if 'ts' not in df.columns and 'recv_ts' not in df.columns:
-            print(f"  ✗ No timestamp column found in {filepath.name}")
-            return None
+        # Normalize if needed
+        if audio_data.dtype == np.int16:
+            audio_data = audio_data.astype(np.float32) / 32768.0
+        elif audio_data.dtype == np.int32:
+            audio_data = audio_data.astype(np.float32) / 2147483648.0
         
-        # Identify timestamp column
-        ts_col = 'ts' if 'ts' in df.columns else 'recv_ts'
-        df = df.sort_values(ts_col).reset_index(drop=True)
+        # Generate timestamps for each audio sample
+        # Start at IMU start time (both were synchronized by trim_duration_sec in sync_video.py)
+        num_samples = len(audio_data)
+        sample_duration_ms = 1000.0 / sample_rate  # Time per sample in ms
         
-        # Rename for consistency
-        df.rename(columns={ts_col: 'recv_ts'}, inplace=True)
+        # Create timestamp for each sample
+        timestamps_ms = imu_start_ts_ms + np.arange(num_samples) * sample_duration_ms
         
-        # Convert to milliseconds if needed
-        if df['recv_ts'].dtype in ['float64', 'float32']:
-            # If already in seconds (Unix timestamp), convert to ms
-            if df['recv_ts'].iloc[0] > 1e10:  # Unix timestamp threshold
-                df['ts_ms'] = (df['recv_ts'] * 1000).astype(int)
-            else:
-                df['ts_ms'] = df['recv_ts'].astype(int)
-        else:
-            df['ts_ms'] = df['recv_ts'].astype(int)
+        # Create DataFrame
+        df = pd.DataFrame({
+            'ts_ms': timestamps_ms.astype(int),
+            'audio_sample': np.arange(num_samples),
+            'audio_value': audio_data
+        })
         
-        print(f"  ✓ Loaded {filepath.name}: {len(df)} samples")
-        return df
+        print(f"  [OK] Loaded {filepath.name}: {num_samples} samples @ {sample_rate} Hz")
+        print(f"      Timestamps: {df['ts_ms'].min()} - {df['ts_ms'].max()} ms")
+        
+        return audio_data, sample_rate, df
     
     except Exception as e:
-        print(f"  ✗ Error loading {filepath.name}: {e}")
-        return None
+        print(f"  [ERR] Error loading {filepath.name}: {e}")
+        return None, None, None
 
 
 def create_audio_windows(df_audio: pd.DataFrame, imu_windows: Dict) -> Dict[str, List[Dict]]:
     """
     Create sliding windows from audio data aligned with IMU windows.
     
-    Since audio and IMU are synchronized, we use the same window boundaries.
+    Since audio and IMU are synchronized by sync_video.py, we use the same window boundaries.
     """
     windows_by_label = {}
     
     print(f"\n  Creating audio windows (aligned with IMU):")
+    
+    if df_audio is None or len(df_audio) == 0:
+        print(f"    [WARNING] No audio data available. Skipping audio windows.")
+        return {}
     
     for label, imu_window_list in imu_windows.items():
         windows_by_label[label] = []
@@ -252,7 +271,7 @@ def create_audio_windows(df_audio: pd.DataFrame, imu_windows: Dict) -> Dict[str,
             window_start = imu_window['start_ts']
             window_end = imu_window['end_ts']
             
-            # Extract audio data for same timestamp range
+            # Extract audio data for same timestamp range as IMU window
             mask = (df_audio['ts_ms'] >= window_start) & (df_audio['ts_ms'] < window_end)
             window_data = df_audio[mask].copy()
             
@@ -298,7 +317,7 @@ def save_imu_windows(windows_by_label: Dict, output_dir: Path):
                         if col not in ['ts_ms']]
             window['data'][save_cols].to_csv(filepath, index=False)
         
-        print(f"    ✓ {label}: {len(window_list)} windows saved")
+        print(f"    [OK] {label}: {len(window_list)} windows saved")
 
 
 def save_audio_windows(windows_by_label: Dict, output_dir: Path):
@@ -321,7 +340,7 @@ def save_audio_windows(windows_by_label: Dict, output_dir: Path):
                         if col not in ['ts_ms']]
             window['data'][save_cols].to_csv(filepath, index=False)
         
-        print(f"    ✓ {label}: {len(window_list)} windows saved")
+        print(f"    [OK] {label}: {len(window_list)} windows saved")
 
 
 def save_statistics(imu_windows: Dict, audio_windows: Dict, output_dir: Path):
@@ -370,7 +389,7 @@ def save_statistics(imu_windows: Dict, audio_windows: Dict, output_dir: Path):
     with open(stats_file, 'w') as f:
         json.dump(stats, f, indent=2)
     
-    print(f"\n  ✓ Statistics saved to windowing_statistics.json")
+    print(f"\n  [OK] Statistics saved to windowing_statistics.json")
     
     # Print summary
     print(f"\n  SUMMARY:")
@@ -401,22 +420,30 @@ def main():
     # Find IMU files
     imu_files = list(script_dir.glob("*imu*.csv"))
     if not imu_files:
-        print("✗ No IMU CSV files found matching pattern '*imu*.csv'")
+        print("[ERR] No IMU CSV files found matching pattern '*imu*.csv'")
         return
     
-    print(f"Found {len(imu_files)} IMU file(s):")
-    for f in imu_files:
-        print(f"  - {f.name}")
+    # Find audio WAV files (check current directory first, then parent directories)
+    audio_wav_files = list(script_dir.glob("audio_*.wav"))
+    if not audio_wav_files:
+        # Try parent directory (Synchronized folder)
+        audio_wav_files = list(script_dir.parent.glob("audio_*.wav"))
+    if not audio_wav_files:
+        # Try grandparent directory (Data Thesis folder - raw data location)
+        audio_wav_files = list(script_dir.parent.parent.glob("**/audio_*.wav"))
+    if not audio_wav_files:
+        # Try looking in the raw data folder with matching name
+        raw_data_folder = script_dir.parent.parent / script_dir.name
+        if raw_data_folder.exists() and raw_data_folder != script_dir:
+            audio_wav_files = list(raw_data_folder.glob("audio_*.wav"))
     
-    # Find audio files
-    audio_files = list(script_dir.glob("*audio_ts*.csv"))
-    if not audio_files:
-        print("\n✗ No audio CSV files found matching pattern '*audio_ts*.csv'")
-        return
-    
-    print(f"\nFound {len(audio_files)} audio file(s):")
-    for f in audio_files:
-        print(f"  - {f.name}")
+    if not audio_wav_files:
+        print("\n[WARNING] No audio WAV files found - will process IMU data only")
+        audio_wav_files = []
+    else:
+        print(f"\nFound {len(audio_wav_files)} audio WAV file(s):")
+        for f in audio_wav_files:
+            print(f"  - {f.name} (in {f.parent.name})")
     
     # Create output directory
     output_dir = script_dir / "windowed_data"
@@ -436,21 +463,19 @@ def main():
         print(f"\nLoading data:")
         df_imu = load_imu_file(imu_file)
         if df_imu is None:
-            print(f"  ✗ Skipping {imu_file.name}")
+            print(f"  [ERR] Skipping {imu_file.name}")
             continue
         
-        # Find corresponding audio file (matching pattern)
-        # Audio files like audio_ts_10_90_50_196.csv, IMU like imu_left_hand.csv
-        # For now, we'll try to match by finding audio files in the same directory
-        matching_audio = [f for f in audio_files if f.parent == imu_file.parent]
+        # Get IMU timestamp range for audio synchronization
+        imu_start_ts_ms = df_imu['ts_ms'].iloc[0]
         
-        if not matching_audio:
-            print(f"  ⚠ No audio files found in same directory, skipping audio windowing")
-            df_audio = None
-        else:
-            # For multiple audio files, process the first one (or you could process all)
-            audio_file = matching_audio[0]
-            df_audio = load_audio_file(audio_file)
+        # Find and load audio file
+        df_audio = None
+        if audio_wav_files:
+            # For simplicity, use first audio WAV file found
+            # In production, you might match by IP address in filename
+            audio_file = audio_wav_files[0]
+            audio_data, sample_rate, df_audio = load_audio_wav(audio_file, imu_start_ts_ms)
         
         # Create IMU windows
         print(f"\nWindowing:")
@@ -473,7 +498,7 @@ def main():
             save_statistics(imu_windows, audio_windows, output_dir)
     
     print(f"\n{'='*60}")
-    print("✓ WINDOWING COMPLETE")
+    print("[OK] WINDOWING COMPLETE")
     print(f"{'='*60}\n")
     print(f"To modify window parameters, edit the WindowConfig class at the top of this script.")
     print(f"For ablation studies, change WINDOW_SIZE_MS and re-run this script.\n")
