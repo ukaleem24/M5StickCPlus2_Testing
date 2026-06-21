@@ -42,46 +42,48 @@ def process_imu_file(filepath: Path, output_dir: Path):
         df = pd.read_csv(filepath)
         print(f"\nProcessing: {filepath.name}")
         
-        # Calculate original frequency for reporting
         total_duration_sec = df['recv_ts'].max() - df['recv_ts'].min()
         orig_freq = len(df) / total_duration_sec if total_duration_sec > 0 else 0
         print(f"  [INFO] Original Frequency: ~{orig_freq:.2f} Hz | Samples: {len(df)}")
         
         # 1. Convert timestamps to a Datetime Index
-        # This allows Pandas to perfectly group data into real time blocks
         df['datetime'] = pd.to_datetime(df['recv_ts'], unit='s')
         df.set_index('datetime', inplace=True)
         
-        # Automatically separate numeric vs categorical (string) columns
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
         
-        # Define the exact time bin size (e.g. '12500us' for 80Hz)
         target_period_us = DownsampleConfig.get_period_us()
         freq_str = f"{target_period_us}us" 
         
-        # 2. Downsample Numeric Data (Mean)
+        # 2. Downsample Numeric Data (Mean) + INTERPOLATE MISSING
         df_numeric = df[numeric_cols].resample(freq_str).mean()
+        df_numeric = df_numeric.interpolate(method='linear') # <--- FIX: Fill the sensor gaps
         
-        # 3. Downsample Categorical Data (Majority Vote)
+        # 3. Downsample Categorical Data (Majority Vote) + FORWARD FILL
         if categorical_cols:
             def get_mode(series):
-                m = series.mode()
+                # Drop NaNs before calculating mode to avoid errors on empty bins
+                m = series.dropna().mode()
                 return m.iloc[0] if not m.empty else np.nan
             
             df_categorical = df[categorical_cols].resample(freq_str).agg(get_mode)
+            df_categorical = df_categorical.ffill().bfill() # <--- FIX: Fill missing labels
+            
             df_resampled = pd.concat([df_numeric, df_categorical], axis=1)
         else:
             df_resampled = df_numeric
             
-        # 4. Cleanup
-        # Drop empty bins (periods where the sensor didn't transmit data)
-        df_resampled = df_resampled.dropna(subset=['recv_ts']).reset_index(drop=True)
+        # 4. Cleanup (NO DROPNA)
+        # Reconstruct the absolute UNIX timestamp from the perfect datetime index
+        # This replaces the averaged 'recv_ts' with a mathematically perfect timeline
+        df_resampled['recv_ts'] = df_resampled.index.astype('int64') / 10**9
         
         # Restore integer formatting for system sequence IDs
         for col in ['seq', 'raw_ts']:
             if col in df_resampled.columns:
-                df_resampled[col] = df_resampled[col].round().astype(int)
+                # Use round and fillna in case interpolation created floats/nans on the edges
+                df_resampled[col] = df_resampled[col].round().fillna(0).astype(int)
         
         # Ensure column order perfectly matches the original file
         final_cols = [c for c in df.columns if c != 'datetime']
@@ -91,7 +93,6 @@ def process_imu_file(filepath: Path, output_dir: Path):
         output_filepath = output_dir / filepath.name
         df_resampled.to_csv(output_filepath, index=False)
         
-        # Calculate new actual frequency to verify it worked
         new_duration_sec = df_resampled['recv_ts'].max() - df_resampled['recv_ts'].min()
         new_freq = len(df_resampled) / new_duration_sec if new_duration_sec > 0 else 0
         
