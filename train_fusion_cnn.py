@@ -12,11 +12,11 @@ import train_raw_cnn as imu_pipeline
 build_imu_model = imu_pipeline.build_model
 build_audio_model = audio_pipeline.build_model
 
-BACKBONE_EPOCHS = 80
+BACKBONE_EPOCHS = 150
 FUSION_EPOCHS = 80
 BATCH_SIZE = 32
-EARLY_STOPPING_PATIENCE = 15
-REDUCE_LR_PATIENCE = 6
+FUSION_EARLY_STOPPING_PATIENCE = 15
+FUSION_REDUCE_LR_PATIENCE = 6
 
 
 def index_files_by_pair_key(root, prefix):
@@ -66,17 +66,31 @@ def load_audio_waveform(wav_path):
     return audio_pipeline.fit_waveform(waveform, audio_pipeline.TARGET_SAMPLES)
 
 
-def make_callbacks():
+def make_backbone_callbacks():
+    # No ReduceLROnPlateau and an effectively unreachable patience: both backbones train
+    # at a constant 1e-3 for the full epoch budget (matches what worked empirically for
+    # the noisy audio validation curve), while restore_best_weights still grabs whichever
+    # epoch had the best val_accuracy instead of leaving it up to wherever training ends.
     return [
         tf.keras.callbacks.EarlyStopping(
             monitor="val_accuracy",
-            patience=EARLY_STOPPING_PATIENCE,
+            patience=BACKBONE_EPOCHS,
+            restore_best_weights=True,
+        ),
+    ]
+
+
+def make_fusion_callbacks():
+    return [
+        tf.keras.callbacks.EarlyStopping(
+            monitor="val_accuracy",
+            patience=FUSION_EARLY_STOPPING_PATIENCE,
             restore_best_weights=True,
         ),
         tf.keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss",
             factor=0.5,
-            patience=REDUCE_LR_PATIENCE,
+            patience=FUSION_REDUCE_LR_PATIENCE,
             min_lr=1e-5,
         ),
     ]
@@ -84,10 +98,15 @@ def make_callbacks():
 
 def get_embedding_model(model: tf.keras.Model) -> tf.keras.Model:
     """Wrap a trained backbone so it outputs its 64-d penultimate features instead of class scores."""
-    dense_layer = next(
-        layer for layer in model.layers if isinstance(layer, tf.keras.layers.Dense) and layer.units == 64
+    dense_index = next(
+        index
+        for index, layer in enumerate(model.layers)
+        if isinstance(layer, tf.keras.layers.Dense) and layer.units == 64
     )
-    embedder = tf.keras.Model(inputs=model.input, outputs=dense_layer.output)
+    # Reuse the trained layer objects directly (rather than model.input/.output graph
+    # introspection) since a Sequential built from Input(...) does not retain a usable
+    # functional graph handle after fit() in this Keras version.
+    embedder = tf.keras.Sequential(model.layers[: dense_index + 1])
     embedder.trainable = False
     return embedder
 
@@ -149,7 +168,7 @@ def main():
         epochs=BACKBONE_EPOCHS,
         batch_size=BATCH_SIZE,
         class_weight=class_weights_dict,
-        callbacks=make_callbacks(),
+        callbacks=make_backbone_callbacks(),
         verbose=2,
     )
     _, imu_accuracy = imu_model.evaluate(x_imu_val, y_val, verbose=0)
@@ -163,7 +182,7 @@ def main():
         epochs=BACKBONE_EPOCHS,
         batch_size=BATCH_SIZE,
         class_weight=class_weights_dict,
-        callbacks=make_callbacks(),
+        callbacks=make_backbone_callbacks(),
         verbose=2,
     )
     _, audio_accuracy = audio_model.evaluate(x_audio_val, y_val, verbose=0)
@@ -202,7 +221,7 @@ def main():
         epochs=FUSION_EPOCHS,
         batch_size=BATCH_SIZE,
         class_weight=class_weights_dict,
-        callbacks=make_callbacks(),
+        callbacks=make_fusion_callbacks(),
         verbose=2,
     )
     _, fusion_accuracy = fusion_model.evaluate(fused_val, y_val, verbose=0)
