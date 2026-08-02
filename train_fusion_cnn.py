@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import soundfile as sf
 import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
@@ -109,6 +110,14 @@ def get_embedding_model(model: tf.keras.Model) -> tf.keras.Model:
     embedder = tf.keras.Sequential(model.layers[: dense_index + 1])
     embedder.trainable = False
     return embedder
+
+
+def report_classification(name, y_true_int, y_pred_int, target_names):
+    print(f"\n--- {name} ---")
+    print("Classification report:")
+    print(classification_report(y_true_int, y_pred_int, target_names=target_names))
+    print("Confusion matrix:")
+    print(confusion_matrix(y_true_int, y_pred_int))
 
 
 def main():
@@ -230,6 +239,16 @@ def main():
     print(f"IMU-only:   {imu_accuracy * 100:.1f}%")
     print(f"Audio-only: {audio_accuracy * 100:.1f}%")
     print(f"Fused:      {fusion_accuracy * 100:.1f}%")
+
+    target_names = label_encoder.classes_
+    y_val_int = np.argmax(y_val, axis=1)
+    imu_val_pred = np.argmax(imu_model.predict(x_imu_val, verbose=0), axis=1)
+    audio_val_pred = np.argmax(audio_model.predict(x_audio_val, verbose=0), axis=1)
+    fusion_val_pred = np.argmax(fusion_model.predict(fused_val, verbose=0), axis=1)
+
+    report_classification("IMU-only", y_val_int, imu_val_pred, target_names)
+    report_classification("Audio-only", y_val_int, audio_val_pred, target_names)
+    report_classification("Fused", y_val_int, fusion_val_pred, target_names)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
@@ -157,6 +158,14 @@ def main():
 
     loss, accuracy = model.evaluate(validation_dataset, verbose=0)
     print(f"Validation Accuracy: {accuracy * 100:.1f}%")
+
+    y_val_true = np.argmax(y_val, axis=1)
+    y_val_pred = np.argmax(model.predict(x_val, verbose=0), axis=1)
+
+    print("\nClassification report:")
+    print(classification_report(y_val_true, y_val_pred, target_names=label_encoder.classes_))
+    print("Confusion matrix:")
+    print(confusion_matrix(y_val_true, y_val_pred))
 
 
 if __name__ == "__main__":

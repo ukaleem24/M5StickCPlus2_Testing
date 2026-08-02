@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import soundfile as sf
 import tensorflow as tf
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
@@ -139,6 +140,14 @@ def search_best_imu_weight(imu_val_probs, audio_val_probs, y_val_int):
     return weights[best_index], accuracies[best_index], weights, accuracies
 
 
+def report_classification(name, y_true_int, y_pred_int, target_names):
+    print(f"\n--- {name} ---")
+    print("Classification report:")
+    print(classification_report(y_true_int, y_pred_int, target_names=target_names))
+    print("Confusion matrix:")
+    print(confusion_matrix(y_true_int, y_pred_int))
+
+
 def main():
     dataset = prepare_paired_dataset()
 
@@ -164,6 +173,16 @@ def main():
     print(f"IMU-only:             {imu_accuracy * 100:.1f}%")
     print(f"Audio-only:           {audio_accuracy * 100:.1f}%")
     print(f"Decision-level fused: {best_accuracy * 100:.1f}%  (IMU weight={best_weight:.2f})")
+
+    target_names = dataset["label_encoder"].classes_
+    y_val_int = dataset["y_val_int"]
+    imu_val_pred = np.argmax(imu_val_probs, axis=1)
+    audio_val_pred = np.argmax(audio_val_probs, axis=1)
+    fused_val_pred = np.argmax(weighted_fusion_probs(imu_val_probs, audio_val_probs, best_weight), axis=1)
+
+    report_classification("IMU-only", y_val_int, imu_val_pred, target_names)
+    report_classification("Audio-only", y_val_int, audio_val_pred, target_names)
+    report_classification("Decision-level fused", y_val_int, fused_val_pred, target_names)
 
 
 if __name__ == "__main__":
