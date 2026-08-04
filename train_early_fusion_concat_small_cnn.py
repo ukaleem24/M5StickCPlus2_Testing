@@ -26,15 +26,25 @@ FUSED_WINDOW_LENGTH = imu_pipeline.WINDOW_LENGTH
 EXPORT_DIR = Path(__file__).resolve().parent / "models"
 REPRESENTATIVE_SAMPLE_COUNT = 200
 
+# Same architecture as train_early_fusion_concat_cnn.py, just with roughly a quarter of
+# the Conv1D filters (64->32, 128->64). On real hardware this model's TFLite Micro
+# CONV_2D op is the dominant cost (see src_inference/main.cpp's Timing log --
+# ~3.6s/inference at 64/128 filters, using this library's unaccelerated reference int8
+# kernel, since ESP-NN hardware acceleration isn't wired up for the Arduino/PlatformIO
+# build). Fewer filters means proportionally fewer MACs for that same slow kernel to
+# grind through, trading some accuracy for a roughly 4x cut in per-inference latency.
+CONV1_FILTERS = 32
+CONV2_FILTERS = 64
+
 
 def build_model(input_shape, num_classes: int) -> tf.keras.Model:
     model = tf.keras.Sequential(
         [
             tf.keras.layers.Input(shape=input_shape),
-            tf.keras.layers.Conv1D(64, kernel_size=5, padding="same", activation="relu"),
+            tf.keras.layers.Conv1D(CONV1_FILTERS, kernel_size=5, padding="same", activation="relu"),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.MaxPooling1D(pool_size=2),
-            tf.keras.layers.Conv1D(128, kernel_size=3, padding="same", activation="relu"),
+            tf.keras.layers.Conv1D(CONV2_FILTERS, kernel_size=3, padding="same", activation="relu"),
             tf.keras.layers.BatchNormalization(),
             tf.keras.layers.GlobalAveragePooling1D(),
             tf.keras.layers.Dense(64, activation="relu"),
@@ -117,7 +127,7 @@ def main():
     )
 
     _, accuracy = model.evaluate(x_val, y_val, verbose=0)
-    print(f"\nEarly Fusion (raw channel-stacking) Validation Accuracy: {accuracy * 100:.1f}%")
+    print(f"\nEarly Fusion (small, {CONV1_FILTERS}/{CONV2_FILTERS} filters) Validation Accuracy: {accuracy * 100:.1f}%")
 
     y_val_true = np.argmax(y_val, axis=1)
     y_val_pred = np.argmax(model.predict(x_val, verbose=0), axis=1)
@@ -131,10 +141,12 @@ def main():
     # reproduce this exact preprocessing on-device: per-channel normalization stats,
     # the class label order (must match the model's output index order), and a
     # representative sample of already-normalized training windows for int8 calibration.
+    # Saved under a distinct name from train_early_fusion_concat_cnn.py's output so both
+    # the full-size and small models can coexist for comparison.
     EXPORT_DIR.mkdir(exist_ok=True)
-    model.save(EXPORT_DIR / "early_fusion_concat.keras")
+    model.save(EXPORT_DIR / "early_fusion_concat_small.keras")
     np.savez(
-        EXPORT_DIR / "early_fusion_concat_export_data.npz",
+        EXPORT_DIR / "early_fusion_concat_small_export_data.npz",
         channel_mean=channel_mean,
         channel_std=channel_std,
         classes=label_encoder.classes_,
