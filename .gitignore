@@ -8,3 +8,5 @@
 /edge-impulse-sdk
 /data
 /models
+/__pycache__
+/thesis
