@@ -3,9 +3,10 @@ import pandas as pd
 import soundfile as sf
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 import train_fusion_cnn as embed_fusion_pipeline
 
@@ -38,12 +39,8 @@ def prepare_paired_dataset():
     y_categorical = tf.keras.utils.to_categorical(y_encoded)
     num_classes = len(label_encoder.classes_)
 
-    train_idx, val_idx = train_test_split(
-        np.arange(len(labels)),
-        test_size=0.2,
-        stratify=y_encoded,
-        random_state=42,
-    )
+    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
+    train_idx, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
 
     x_imu_train, x_imu_val = x_imu_raw[train_idx], x_imu_raw[val_idx]
     x_audio_train, x_audio_val = x_audio_spec[train_idx], x_audio_spec[val_idx]

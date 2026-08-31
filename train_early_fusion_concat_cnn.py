@@ -3,9 +3,10 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 import train_fusion_cnn as fusion_pipeline
 
@@ -72,12 +73,8 @@ def main():
     y_categorical = tf.keras.utils.to_categorical(y_encoded)
     num_classes = len(label_encoder.classes_)
 
-    train_idx, val_idx = train_test_split(
-        np.arange(len(labels)),
-        test_size=0.2,
-        stratify=y_encoded,
-        random_state=42,
-    )
+    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
+    train_idx, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
 
     x_train, x_val = x_fused[train_idx], x_fused[val_idx]
     y_train, y_val = y_categorical[train_idx], y_categorical[val_idx]

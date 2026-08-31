@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 
 # Raw-window HAR training configuration
@@ -37,6 +38,7 @@ def resample_window(window: np.ndarray, target_length: int) -> np.ndarray:
 def load_raw_windows(data_root: Path):
     windows = []
     labels = []
+    timestamps = []
 
     for csv_path in sorted(data_root.rglob("*.csv")):
         if "imu" not in csv_path.parts:
@@ -55,11 +57,12 @@ def load_raw_windows(data_root: Path):
 
         windows.append(window)
         labels.append(label)
+        timestamps.append(parse_window_timestamp(csv_path))
 
     if not windows:
         raise ValueError(f"No raw IMU CSV files found under {data_root}")
 
-    return np.stack(windows), np.array(labels)
+    return np.stack(windows), np.array(labels), np.array(timestamps)
 
 
 def build_model(num_classes: int) -> tf.keras.Model:
@@ -87,19 +90,17 @@ def build_model(num_classes: int) -> tf.keras.Model:
 
 
 def main():
-    x_raw, y_raw = load_raw_windows(DATA_ROOT)
+    x_raw, y_raw, timestamps = load_raw_windows(DATA_ROOT)
 
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y_raw)
     y_categorical = tf.keras.utils.to_categorical(y_encoded)
 
-    x_train, x_val, y_train, y_val = train_test_split(
-        x_raw,
-        y_categorical,
-        test_size=0.2,
-        stratify=y_encoded,
-        random_state=42,
-    )
+    # Grouped split: windows overlap 50%, so a plain random/stratified split can leak
+    # overlapping samples from the same activity instance across train/val (see data_split.py).
+    train_idx, val_idx = grouped_train_val_split(y_raw, timestamps, test_size=0.2, random_state=42)
+    x_train, x_val = x_raw[train_idx], x_raw[val_idx]
+    y_train, y_val = y_categorical[train_idx], y_categorical[val_idx]
 
     # Normalize per channel using only the training split.
     channel_mean = np.mean(x_train, axis=(0, 1), keepdims=True)

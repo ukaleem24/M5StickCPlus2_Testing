@@ -4,9 +4,10 @@ import numpy as np
 import soundfile as sf
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 
 # Raw-audio HAR training configuration
@@ -39,6 +40,7 @@ def fit_waveform(waveform: np.ndarray, target_length: int) -> np.ndarray:
 def load_audio_windows(data_root: Path):
     waveforms = []
     labels = []
+    timestamps = []
 
     for wav_path in sorted(data_root.rglob("*.wav")):
         label = wav_path.parent.name
@@ -51,11 +53,12 @@ def load_audio_windows(data_root: Path):
 
         waveforms.append(fit_waveform(waveform, TARGET_SAMPLES))
         labels.append(label)
+        timestamps.append(parse_window_timestamp(wav_path))
 
     if not waveforms:
         raise ValueError(f"No audio WAV files found under {data_root}")
 
-    return np.stack(waveforms), np.array(labels)
+    return np.stack(waveforms), np.array(labels), np.array(timestamps)
 
 
 def compute_log_mel_spectrograms(waveforms: np.ndarray) -> np.ndarray:
@@ -109,20 +112,18 @@ def build_model(input_shape, num_classes: int) -> tf.keras.Model:
 
 
 def main():
-    x_raw, y_raw = load_audio_windows(DATA_ROOT)
+    x_raw, y_raw, timestamps = load_audio_windows(DATA_ROOT)
     x_spec = compute_log_mel_spectrograms(x_raw)
 
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y_raw)
     y_categorical = tf.keras.utils.to_categorical(y_encoded)
 
-    x_train, x_val, y_train, y_val = train_test_split(
-        x_spec,
-        y_categorical,
-        test_size=0.2,
-        stratify=y_encoded,
-        random_state=42,
-    )
+    # Grouped split: windows overlap 50%, so a plain random/stratified split can leak
+    # overlapping samples from the same activity instance across train/val (see data_split.py).
+    train_idx, val_idx = grouped_train_val_split(y_raw, timestamps, test_size=0.2, random_state=42)
+    x_train, x_val = x_spec[train_idx], x_spec[val_idx]
+    y_train, y_val = y_categorical[train_idx], y_categorical[val_idx]
 
     # Normalize per mel bin using only the training split.
     bin_mean = np.mean(x_train, axis=(0, 1), keepdims=True)

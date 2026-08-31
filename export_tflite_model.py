@@ -4,8 +4,9 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 FIRMWARE_DIR = Path(__file__).resolve().parent / "src_inference"
 
@@ -223,9 +224,8 @@ def build_self_test_vectors(channel_mean, channel_std, quantization, classes, sa
     label_encoder.classes_ = np.asarray(classes)
     y_encoded = label_encoder.transform(labels)
 
-    _, val_idx = train_test_split(
-        np.arange(len(labels)), test_size=0.2, stratify=y_encoded, random_state=42
-    )
+    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
+    _, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
 
     chosen_indices = []
     seen_classes = set()

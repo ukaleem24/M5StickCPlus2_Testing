@@ -1,9 +1,10 @@
 import numpy as np
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 import train_fusion_backbones_small as backbones_pipeline
 
@@ -47,9 +48,8 @@ def main():
     y_encoded = label_encoder.transform(labels)
     y_categorical = tf.keras.utils.to_categorical(y_encoded, num_classes=num_classes)
 
-    train_idx, val_idx = train_test_split(
-        np.arange(len(labels)), test_size=0.2, stratify=y_encoded, random_state=42
-    )
+    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
+    train_idx, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
 
     x_imu_train = (x_imu_raw[train_idx] - imu_channel_mean) / imu_channel_std
     x_imu_val = (x_imu_raw[val_idx] - imu_channel_mean) / imu_channel_std

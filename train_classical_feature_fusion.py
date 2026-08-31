@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 import train_fusion_cnn as fusion_pipeline
 
@@ -56,12 +57,8 @@ def main():
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(labels)
 
-    train_idx, val_idx = train_test_split(
-        np.arange(len(labels)),
-        test_size=0.2,
-        stratify=y_encoded,
-        random_state=RANDOM_STATE,
-    )
+    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
+    train_idx, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=RANDOM_STATE)
 
     x_train, x_val = x_features[train_idx], x_features[val_idx]
     y_train, y_val = y_encoded[train_idx], y_encoded[val_idx]

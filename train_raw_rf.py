@@ -8,8 +8,9 @@ import pandas as pd
 from scipy.signal import resample
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+
+from data_split import grouped_train_val_split, parse_window_timestamp
 
 
 WINDOW_LENGTH = 200
@@ -145,9 +146,10 @@ def resample_window(window: np.ndarray, target_length: int = WINDOW_LENGTH) -> n
     return resample(window, target_length, axis=0).astype(np.float32)
 
 
-def load_windows(data_root: Path) -> tuple[np.ndarray, np.ndarray]:
+def load_windows(data_root: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     windows = []
     labels = []
+    timestamps = []
 
     for csv_path in sorted(data_root.rglob("*.csv")):
         if "imu" not in csv_path.parts:
@@ -164,28 +166,27 @@ def load_windows(data_root: Path) -> tuple[np.ndarray, np.ndarray]:
 
         windows.append(window)
         labels.append(csv_path.parent.name)
+        timestamps.append(parse_window_timestamp(csv_path))
 
     if not windows:
         raise ValueError(f"No raw IMU CSV files found under {data_root}")
 
-    return np.stack(windows), np.array(labels)
+    return np.stack(windows), np.array(labels), np.array(timestamps)
 
 
 def main() -> None:
-    windows, labels = load_windows(DATA_ROOT)
+    windows, labels, timestamps = load_windows(DATA_ROOT)
 
     feature_rows = np.vstack([extract_features(window) for window in windows])
 
     label_encoder = LabelEncoder()
     y = label_encoder.fit_transform(labels)
 
-    x_train, x_val, y_train, y_val = train_test_split(
-        feature_rows,
-        y,
-        test_size=0.2,
-        stratify=y,
-        random_state=42,
-    )
+    # Grouped split: windows overlap 50%, so a plain random/stratified split can leak
+    # overlapping samples from the same activity instance across train/val (see data_split.py).
+    train_idx, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
+    x_train, x_val = feature_rows[train_idx], feature_rows[val_idx]
+    y_train, y_val = y[train_idx], y[val_idx]
 
     model = RandomForestClassifier(
         n_estimators=700,
