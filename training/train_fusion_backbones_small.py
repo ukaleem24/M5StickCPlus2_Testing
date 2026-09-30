@@ -21,7 +21,7 @@ make_backbone_callbacks = fusion_pipeline.make_backbone_callbacks
 BACKBONE_EPOCHS = fusion_pipeline.BACKBONE_EPOCHS
 BATCH_SIZE = fusion_pipeline.BATCH_SIZE
 
-EXPORT_DIR = Path(__file__).resolve().parent / "models"
+EXPORT_DIR = Path(__file__).resolve().parent.parent / "models"
 REPRESENTATIVE_SAMPLE_COUNT = 200
 
 # Shrunk versions of train_raw_cnn.py's / train_audio_cnn.py's backbones, shared by both

@@ -14,7 +14,12 @@ from data_split import grouped_train_val_split, parse_window_timestamp
 # Raw-window HAR training configuration
 WINDOW_LENGTH = 200
 NUM_CHANNELS = 6
-DATA_ROOT = Path(__file__).resolve().parent / "data" / "windowed_data" / "right_hand_dominant" / "imu"
+# windowed_data_combined_no_ci merges the original dataset with the new
+# right-hand-only recording sessions and drops compartment_interaction (its
+# confusion with several other classes measurably hurt fusion accuracy in
+# this session's comparison: 82.3% -> 85.0% once excluded). The original
+# windowed_data/ tree is left untouched as the historical baseline.
+DATA_ROOT = Path(__file__).resolve().parent.parent / "data" / "windowed_data_combined_no_ci" / "right_hand_dominant" / "imu"
 
 CHANNEL_COLUMNS = ["acc_x", "acc_y", "acc_z", "gyro_x", "gyro_y", "gyro_z"]
 CLASS_NAMES = None

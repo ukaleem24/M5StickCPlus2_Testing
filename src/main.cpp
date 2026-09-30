@@ -5,7 +5,7 @@
 
 const char *ssid = "Redmi Note 11";
 const char *password = "passpass123";
-const char *hostIp = "10.90.50.46";
+const char *hostIp = "10.119.193.188";
 const int udpPort = 1234;
 const int audioUdpPort = 1235; // Audio packets on separate port
 
@@ -47,9 +47,6 @@ void setup(void)
   // Initialize UDP
   udp.begin(udpPort);
   audioUdp.begin(audioUdpPort);
-
-  // Set IMU ODR to 100 Hz
-  StickCP2.Imu.setODR(2);
 
   // Initialize microphone: 16 kHz, mono, 16-bit
   auto micCfg = StickCP2.Mic.config();

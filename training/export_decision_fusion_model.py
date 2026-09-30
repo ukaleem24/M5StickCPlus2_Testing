@@ -24,7 +24,7 @@ load_audio_waveform = backbones_pipeline.load_audio_waveform
 export_utils.audio_pipeline = audio_pipeline
 
 EXPORT_DIR = backbones_pipeline.EXPORT_DIR
-FIRMWARE_DIR = Path(__file__).resolve().parent / "src_inference_decision_fusion"
+FIRMWARE_DIR = Path(__file__).resolve().parent.parent / "src_inference_decision_fusion"
 
 AUDIO_SPECTROGRAM_BINS = audio_pipeline.FFT_LENGTH // 2 + 1
 AUDIO_RAW_FRAMES = (audio_pipeline.TARGET_SAMPLES - audio_pipeline.FRAME_LENGTH) // audio_pipeline.FRAME_STEP + 1

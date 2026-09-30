@@ -25,7 +25,7 @@ get_embedding_model = fusion_pipeline.get_embedding_model
 export_utils.audio_pipeline = audio_pipeline
 
 EXPORT_DIR = backbones_pipeline.EXPORT_DIR
-FIRMWARE_DIR = Path(__file__).resolve().parent / "src_inference_embedding_fusion"
+FIRMWARE_DIR = Path(__file__).resolve().parent.parent / "src_inference_embedding_fusion"
 
 AUDIO_SPECTROGRAM_BINS = audio_pipeline.FFT_LENGTH // 2 + 1
 export_utils.AUDIO_SPECTROGRAM_BINS = AUDIO_SPECTROGRAM_BINS

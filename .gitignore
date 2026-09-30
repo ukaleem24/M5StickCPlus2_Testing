@@ -6,7 +6,7 @@
 /data
 /lib
 /edge-impulse-sdk
-/data
 /models
-/__pycache__
+__pycache__/
 /thesis
+/.venv

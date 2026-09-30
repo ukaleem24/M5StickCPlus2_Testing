@@ -24,7 +24,7 @@ BATCH_SIZE = fusion_pipeline.BATCH_SIZE
 # IMU window length keeps this close to the IMU pipeline's native resolution.
 FUSED_WINDOW_LENGTH = imu_pipeline.WINDOW_LENGTH
 
-EXPORT_DIR = Path(__file__).resolve().parent / "models"
+EXPORT_DIR = Path(__file__).resolve().parent.parent / "models"
 REPRESENTATIVE_SAMPLE_COUNT = 200
 
 

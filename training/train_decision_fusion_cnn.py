@@ -28,6 +28,7 @@ def prepare_paired_dataset():
     """Load paired IMU/audio windows and produce a single stratified train/val split
     shared by both modalities, so predictions line up sample-for-sample."""
     imu_paths, audio_paths, labels = discover_paired_windows(imu_pipeline.DATA_ROOT, audio_pipeline.DATA_ROOT)
+
     print(f"Found {len(labels)} paired IMU/audio windows across {len(set(labels))} classes.")
 
     x_imu_raw = np.stack([load_imu_window(path) for path in imu_paths])
@@ -137,6 +138,41 @@ def search_best_imu_weight(imu_val_probs, audio_val_probs, y_val_int):
     return weights[best_index], accuracies[best_index], weights, accuracies
 
 
+def search_per_class_weights(imu_val_probs, audio_val_probs, y_val_int, num_classes, global_best_weight):
+    """Greedy coordinate-ascent refinement of the single global weight into one weight
+    per class. A silent class like measuring/idle and a loud, rhythmic one like
+    hammering/screw_tightening don't need the same IMU/audio trust ratio, but a lone
+    scalar weight forces one compromise value on every class at once. weighted_fusion_probs
+    already broadcasts a (num_classes,) weight vector correctly (numpy broadcasts the last
+    axis), so no change was needed there -- only the search needed to become per-class.
+
+    Each class's weight is tuned independently while holding every other class's weight
+    fixed, optimizing overall accuracy at each step; a couple of passes over all classes
+    is enough for this to converge since classes barely interact (changing one class's
+    weight only reassigns predictions that were already ambiguous between it and another)."""
+    weights = np.arange(0.0, 1.0 + 1e-9, WEIGHT_SEARCH_STEP)
+    per_class_weight = np.full(num_classes, global_best_weight, dtype=np.float64)
+
+    def accuracy_with(pcw):
+        fused = weighted_fusion_probs(imu_val_probs, audio_val_probs, pcw)
+        return float(np.mean(np.argmax(fused, axis=1) == y_val_int))
+
+    best_accuracy = accuracy_with(per_class_weight)
+    for _ in range(2):  # two passes is enough given classes barely interact
+        for c in range(num_classes):
+            candidate = per_class_weight.copy()
+            best_w_for_class = per_class_weight[c]
+            for w in weights:
+                candidate[c] = w
+                acc = accuracy_with(candidate)
+                if acc > best_accuracy:
+                    best_accuracy = acc
+                    best_w_for_class = w
+            per_class_weight[c] = best_w_for_class
+
+    return per_class_weight, best_accuracy
+
+
 def report_classification(name, y_true_int, y_pred_int, target_names):
     print(f"\n--- {name} ---")
     print("Classification report:")
@@ -166,20 +202,30 @@ def main():
         marker = "  <-- best" if weight == best_weight else ""
         print(f"IMU weight {weight:.2f} / audio weight {1 - weight:.2f}: {accuracy * 100:.1f}%{marker}")
 
-    print("\n=== Validation Accuracy Summary ===")
-    print(f"IMU-only:             {imu_accuracy * 100:.1f}%")
-    print(f"Audio-only:           {audio_accuracy * 100:.1f}%")
-    print(f"Decision-level fused: {best_accuracy * 100:.1f}%  (IMU weight={best_weight:.2f})")
-
     target_names = dataset["label_encoder"].classes_
+    per_class_weight, per_class_accuracy = search_per_class_weights(
+        imu_val_probs, audio_val_probs, dataset["y_val_int"], dataset["num_classes"], best_weight
+    )
+
+    print("\n=== Validation Accuracy Summary ===")
+    print(f"IMU-only:                  {imu_accuracy * 100:.1f}%")
+    print(f"Audio-only:                {audio_accuracy * 100:.1f}%")
+    print(f"Decision-level fused:      {best_accuracy * 100:.1f}%  (global IMU weight={best_weight:.2f})")
+    print(f"Decision-level (per-class): {per_class_accuracy * 100:.1f}%")
+    print("\nPer-class IMU weight:")
+    for name, w in zip(target_names, per_class_weight):
+        print(f"  {name}: {w:.2f}")
+
     y_val_int = dataset["y_val_int"]
     imu_val_pred = np.argmax(imu_val_probs, axis=1)
     audio_val_pred = np.argmax(audio_val_probs, axis=1)
     fused_val_pred = np.argmax(weighted_fusion_probs(imu_val_probs, audio_val_probs, best_weight), axis=1)
+    fused_per_class_pred = np.argmax(weighted_fusion_probs(imu_val_probs, audio_val_probs, per_class_weight), axis=1)
 
     report_classification("IMU-only", y_val_int, imu_val_pred, target_names)
     report_classification("Audio-only", y_val_int, audio_val_pred, target_names)
-    report_classification("Decision-level fused", y_val_int, fused_val_pred, target_names)
+    report_classification("Decision-level fused (global weight)", y_val_int, fused_val_pred, target_names)
+    report_classification("Decision-level fused (per-class weight)", y_val_int, fused_per_class_pred, target_names)
 
 
 if __name__ == "__main__":

@@ -31,19 +31,25 @@ IMU_STFT_FFT_LENGTH = 32
 def compute_imu_spectrograms(imu_windows: np.ndarray, target_shape) -> np.ndarray:
     """Per-axis STFT magnitude spectrogram, resized onto the same (time, frequency) grid
     as the audio log-mel spectrogram so every channel -- IMU or audio -- can be stacked
-    together as channels of one multi-channel "image" before any modality-specific layer."""
-    axis_spectrograms = []
-    for axis_index in range(imu_windows.shape[-1]):
-        stft = tf.signal.stft(
-            imu_windows[..., axis_index],
-            frame_length=IMU_STFT_FRAME_LENGTH,
-            frame_step=IMU_STFT_FRAME_STEP,
-            fft_length=IMU_STFT_FFT_LENGTH,
-        )
-        log_magnitude = tf.math.log(tf.abs(stft) + 1e-6)
-        resized = tf.image.resize(log_magnitude[..., tf.newaxis], target_shape)[..., 0]
-        axis_spectrograms.append(resized)
-    return tf.stack(axis_spectrograms, axis=-1).numpy()
+    together as channels of one multi-channel "image" before any modality-specific layer.
+
+    Forced onto CPU: tf.signal.stft has no DirectML GPU kernel and the plugin segfaults
+    (instead of cleanly falling back) if left unpinned -- same issue already fixed in
+    train_audio_cnn.py's compute_log_mel_spectrograms, but this is a separate STFT call
+    that was never touched. One-time preprocessing step, so the CPU cost is negligible."""
+    with tf.device("/CPU:0"):
+        axis_spectrograms = []
+        for axis_index in range(imu_windows.shape[-1]):
+            stft = tf.signal.stft(
+                imu_windows[..., axis_index],
+                frame_length=IMU_STFT_FRAME_LENGTH,
+                frame_step=IMU_STFT_FRAME_STEP,
+                fft_length=IMU_STFT_FFT_LENGTH,
+            )
+            log_magnitude = tf.math.log(tf.abs(stft) + 1e-6)
+            resized = tf.image.resize(log_magnitude[..., tf.newaxis], target_shape)[..., 0]
+            axis_spectrograms.append(resized)
+        return tf.stack(axis_spectrograms, axis=-1).numpy()
 
 
 def main():

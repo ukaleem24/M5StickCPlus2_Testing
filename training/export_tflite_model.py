@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from data_split import grouped_train_val_split, parse_window_timestamp
 
-FIRMWARE_DIR = Path(__file__).resolve().parent / "src_inference"
+FIRMWARE_DIR = Path(__file__).resolve().parent.parent / "src_inference"
 
 # All of these are resolved in main() once --model is known, since which training
 # script's saved artifacts we're exporting is a runtime choice (e.g. the full-size
