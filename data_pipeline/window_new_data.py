@@ -74,13 +74,14 @@ def load_labels(xlsx_path: Path) -> pd.DataFrame:
     df = df[["Label", "Start", "End"]].dropna(subset=["Label", "Start", "End"])
     df["Label"] = df["Label"].astype(str).str.strip()
 
-    # Both known new-format sheets declare "(sss.ms)" -- i.e. millisecond
-    # values -- unlike the historical sheets' plain seconds. Detect by
-    # magnitude as a safety net: real sessions run at most ~20 minutes
-    # (1200s), so Start/End values that large can only be milliseconds.
-    if df["End"].max() > 1200:
-        df["Start"] = df["Start"] / 1000.0
-        df["End"] = df["End"] / 1000.0
+    # Some sheets declare "(sss.ms)" -- i.e. millisecond values -- unlike the
+    # historical sheets' plain seconds, and at least one sheet had a single
+    # cell entered with its decimal point dropped (469925 meaning 469.925),
+    # mixing units within one row. Correct per-VALUE rather than per-column:
+    # real sessions run at most ~20 minutes (1200s), so any Start/End value
+    # that large on its own can only be milliseconds.
+    df["Start"] = df["Start"].where(df["Start"] <= 1200, df["Start"] / 1000.0)
+    df["End"] = df["End"].where(df["End"] <= 1200, df["End"] / 1000.0)
 
     return df.reset_index(drop=True)
 
@@ -297,7 +298,9 @@ def discover_devices(session_dir: Path):
 def main():
     session_dirs = [p for p in sorted(SYNCED_ROOT.iterdir()) if p.is_dir()]
     for session_dir in session_dirs:
-        label_files = list(session_dir.glob("*label*.xlsx"))
+        # Exclude Excel's own "~$..." lock file (present whenever the sheet is
+        # open), which matches this glob and isn't a readable spreadsheet.
+        label_files = [p for p in session_dir.glob("*label*.xlsx") if not p.name.startswith("~$")]
         if not label_files:
             print(f"\n=== Session: {session_dir.name} -- SKIPPED (no label file found) ===")
             continue

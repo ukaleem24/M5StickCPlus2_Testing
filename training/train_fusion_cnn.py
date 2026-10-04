@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
 
+from best_weights import RestoreBestWeights
 from data_split import grouped_train_val_split, parse_window_timestamp
 
 import train_audio_cnn as audio_pipeline
@@ -69,17 +70,13 @@ def load_audio_waveform(wav_path):
 
 
 def make_backbone_callbacks():
-    # No ReduceLROnPlateau and an effectively unreachable patience: both backbones train
-    # at a constant 1e-3 for the full epoch budget (matches what worked empirically for
-    # the noisy audio validation curve), while restore_best_weights still grabs whichever
-    # epoch had the best val_accuracy instead of leaving it up to wherever training ends.
-    return [
-        tf.keras.callbacks.EarlyStopping(
-            monitor="val_accuracy",
-            patience=BACKBONE_EPOCHS,
-            restore_best_weights=True,
-        ),
-    ]
+    # No early stopping and no ReduceLROnPlateau: both backbones train at a constant 1e-3
+    # for the full epoch budget (matches what worked empirically for the noisy audio
+    # validation curve), then the best-val_accuracy epoch's weights are restored. This
+    # used to be EarlyStopping(patience=BACKBONE_EPOCHS, restore_best_weights=True), which
+    # in this Keras version never restored anything (see best_weights.py) -- backbones
+    # silently kept their last-epoch weights. Switching measurably improved fusion.
+    return [RestoreBestWeights(monitor="val_accuracy")]
 
 
 def make_fusion_callbacks():

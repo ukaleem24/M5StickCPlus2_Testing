@@ -7,6 +7,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import class_weight
 
+from best_weights import RestoreBestWeights
 from data_split import grouped_train_val_split, parse_window_timestamp
 
 
@@ -256,24 +257,16 @@ def main():
     model = MODEL_BUILDER(x_spec.shape[1:], len(label_encoder.classes_))
     model.summary()
 
-    callbacks = [
-        # tf.keras.callbacks.EarlyStopping(
-        #     monitor="val_accuracy",
-        #     patience=12,
-        #     restore_best_weights=True,
-        # ),
-        # tf.keras.callbacks.ReduceLROnPlateau(
-        #     monitor="val_loss",
-        #     factor=0.5,
-        #     patience=5,
-        #     min_lr=1e-5,
-        # ),
-    ]
+    epochs = 150
+    # No early stopping -- every run goes the full epoch budget -- but the evaluated
+    # model is the best-val_accuracy epoch rather than whatever epoch 150 happens to
+    # land on (the audio validation curve is noisy late in training).
+    callbacks = [RestoreBestWeights(monitor="val_accuracy")]
 
     history = model.fit(
         train_dataset,
         validation_data=validation_dataset,
-        epochs=150,
+        epochs=epochs,
         class_weight=class_weights_dict,
         callbacks=callbacks,
         verbose=2,
