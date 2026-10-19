@@ -1,0 +1,46 @@
+\section{Background and Motivation}
+Manual assembly remains a fundamental operation in industrial and manufacturing environments, and includes assembly tasks such as inserting parts, fastening screws, measuring, and component handling that are performed by human operators[CITATION]. In these environments, the automatic recognition of the operator's activity at a particular time, known as Human Activity Recognition (HAR), is of practical interest in several applications, such as process monitoring, ergonomic assessment, quality assurance, and training support [CITATION]. Sensor-based HAR, in which activities are classified based on signals captured by body-worn sensors rather than from video, has received particular attention because it avoids some of the privacy and line-of-sight limitations associated with camera-based systems [CITATION].
+
+Inertial Measurement Units (IMUs) that combine accelerometers and gyroscopes are the most common sensing modalities for HAR, due to their small size, low cost, and ability to record motion patterns related to physical activity [CITATION]. However, a single inertial signal can be insufficient to distinguish between activities that share similar motion characteristics but differ in other respects. In a manual assembly context, this is a real limitation: many repetitive-motion activities with a hand tool, like fastening a screw, inserting a component,  or striking with a tool, could have similar inertial signatures, while the sounds associated with these actions differ substantially. This motivates the use of audio as a complementary sensing modality alongside inertial sensing and the investigation of multimodal fusion of the two modalities.
+
+In addition to the sensing modality, the way activity recognition is used affects its applicability. A system that requires constant access to an external computer or cloud service for making inferences ties activity recognition to external cloud compute infrastructure and network availability. A wearable device capable of performing inference locally, without network connectivity, is a more independent alternative. However, this requires the classification model to be implemented in the resource-constrained environment of low-cost, low-power hardware rather than on general-purpose computing hardware.
+
+This thesis addresses these two considerations by investigating multimodal inertial and acoustic sensing to improve activity classification in a manual assembly context and by deploying the resulting classifier directly on a resource-constrained wearable device.
+
+
+\section{Problem Statement}
+
+One drawback of single-modality HAR systems based solely on inertial sensing is that they may not reliably distinguish between activities that require similar gross motor movements. There are a number of hand-proximal, repetitive-motion activities that are of this type within a given manual-assembly activity set, and their inertial signatures may not be well separated even though the sounds they produce may be quite different. This raises the question of whether and how to integrate audio with inertial data at the raw signal level, the level of learned representations, or at the level of model decisions to increase discriminability among these activities.
+
+The second type of problem is not about accuracy but deployment. Offline evaluation of a classifier does not guarantee that the classifier will perform or even execute properly on an embedded target. When applying deep-learning models to a low-power wearable device, constraints on memory, computational resources, and inference latency must be considered. Models developed without these constraints may not be directly suitable for deployment. An on-device system also needs to replicate with high fidelity the signal processing performed when preparing the training data; any systematic difference between the processing done during training and during inference can lead to accuracy degradation, even if the underlying model is correct.
+
+A further challenge arises from variations in sensor placement and orientation. Inertial measurements depend on the orientation of the sensor relative to the body and gravity. Consequently, a model trained under one sensor orientation may perform poorly when the device is worn in a different orientation during inference. Such a failure mode may not be apparent in an offline evaluation and may only become evident when the system is evaluated on-device under realistic operating conditions.
+
+Overall, these issues highlight the need for more effective treatment of embedded multimodal HAR. Most published work on multimodal activity recognition focuses on how to evaluate the performance of fusion strategies without considering the question of whether fusion models can be deployed on the limited hardware they ultimately have to run on [CITATION]. However, research with embedded or on-device HAR often focuses on one type of sensor modality to avoid sensor fusion, thus avoiding the fusion question altogether [CITATION]. Comparatively little work has systematically evaluated different multimodal fusion strategies while also considering their adaptation and real-time execution on resource-constrained wearable devices. This thesis addresses this gap in the context of manual assembly activity recognition by evaluating multimodal fusion strategies together with their practical requirements for embedded deployment.
+
+\section{Research Objectives}
+
+\subsection{Primary Objective}
+The main goal of this thesis is to design, implement and test a multimodal (IMU and audio) activity recognition system for manual assembly activities and deploy the most successful configuration(s) as real-time, on-device inference on a resource-constrained wearable device.
+
+\subsection{Specific Objectives}
+\begin{enumerate}
+    \item To design a data acquisition and preprocessing pipeline to synchronize inertial and audio streams from a wearable device and generate labeled fixed-length activity windows for supervised training.
+    \item To train and compare multiple sensor fusion strategies, from single-modality baselines, early (feature level) fusion, and late (embedding level and decision level) fusion, under a common evaluation protocol to assess which strategy is best suited for this activity set.
+    \item To make the best-performing model configurations suitable for embedded inference, including the on-device signal processing required to reproduce the preprocessing pipeline used during training.
+    \item To deploy and test several setups on the target wearable system, and to identify real-world limitations such as memory usage, latency, and sensitivity to the orientation of the sensors.
+\end{enumerate}
+
+
+\subsection{Research Questions}
+The following research questions are answered on the basis of the objectives above:
+\begin{enumerate}
+    \item \textbf{Multimodal Sensor Contribution}: To what extent does adding audio to inertial sensing improve activity recognition performance for manual assembly tasks?
+    \item \textbf{Sensor Fusion Strategy}: Which fusion strategies provide the best activity recognition performance under a common preprocessing and evaluation protocol?
+    \item \textbf{Baselines}: How does multimodal fusion compare with single-modality baselines and classical machine-learning approaches based on hand-crafted features?
+    \item \textbf{Deployment viability}: Can a quantized multimodal fusion model be executed on a microcontroller-class wearable device within a latency suitable for real-time activity classification?
+\end{enumerate}
+
+\section{Thesis Structure}
+
+[To be added later]

@@ -1,0 +1,810 @@
+% Chapter 4 -- Model Design and Training
+% Figures are authored in TikZ so the chapter compiles without external assets.
+% Placeholders [CITATION: ...] mark references still to be added.
+
+\label{ch:method}
+
+\tikzset{
+  blk/.style={draw, rounded corners=2pt, align=center, inner sep=4pt,
+              minimum height=8mm, font=\footnotesize},
+  grp/.style={draw, dashed, rounded corners=3pt, inner sep=6pt},
+  flow/.style={-{Latex[length=2mm]}, thick},
+}
+
+This chapter describes the models used for activity recognition and the
+procedure used to train and evaluate them. It begins with an overview of the
+experimental design and its relation to the research questions. It then covers
+the input representations derived from the inertial and acoustic windows of
+Chapter~\ref{ch:data}, the single-modality models, the three fusion strategies,
+and a classical baseline using hand-crafted features. It closes with the training
+procedure and the evaluation protocol that all models share. The results obtained
+with these models are presented in Chapter~\ref{ch:results}, and the conversion
+of selected models for execution on the wearable device is covered in
+Chapter~\ref{ch:implementation}.
+
+\section{Overview of the Experimental Design}
+\label{sec:design}
+
+The experiments compare models that differ in one respect at a time while
+sharing everything else: the same windows, the same train/validation split, the
+same input normalisation and the same training settings. This makes differences
+in accuracy attributable to the model design rather than to differences in the
+data or in the training procedure.
+
+The models fall into four groups, each linked to one or more of the research
+questions formulated in Chapter~1:
+
+\begin{itemize}
+  \item \textbf{Single-modality models} use either inertial or acoustic data
+  alone. They form the reference point against which the benefit of adding audio
+  is measured (RQ1, RQ3).
+  \item \textbf{Fusion models} combine both modalities at different stages of
+  processing: at the input level (early fusion), at the level of learned
+  representations (embedding-level fusion), or at the level of class predictions
+  (decision-level fusion). Their comparison addresses RQ2.
+  \item \textbf{A classical baseline} based on statistical features and a random
+  forest shows how much the learned models gain over a conventional approach
+  (RQ3).
+  \item \textbf{Reduced model variants} with fewer parameters were designed with
+  the memory and computational limits of the target device in mind. They connect
+  the offline comparison to the deployment study in
+  Chapter~\ref{ch:implementation} (RQ4).
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|p{3.1cm}|X|p{2.4cm}|p{2.6cm}|}
+\hline
+\textbf{Group} & \textbf{Model} & \textbf{Inputs} & \textbf{Fusion stage} \\
+\hline
+Single modality & IMU CNN & inertial & -- \\
+Single modality & Audio CNN (GAP, GRU and hybrid pooling) & acoustic & -- \\
+Early fusion & Channel concatenation (standard and small) & inertial + acoustic & input \\
+Early fusion & Unified spectrogram & inertial + acoustic & input \\
+Embedding-level fusion & Frozen backbones with a trained fusion head (standard and small) & inertial + acoustic & representation \\
+Decision-level fusion & Weighted average with global or per-class weights (standard and small) & inertial + acoustic & prediction \\
+Classical baseline & Random forest on hand-crafted features & inertial + acoustic & feature \\
+\hline
+\end{tabularx}
+\caption{Overview of the evaluated models.}
+\label{tab:model-overview}
+\end{table}
+
+All experiments use the dominant-wrist dataset described in
+Chapter~\ref{ch:data}, with 2565 paired windows across nine activity classes. The
+standalone audio model is the one exception: it additionally uses audio windows
+from the non-dominant wrist and the waist, as explained in
+Section~\ref{sec:audio-model}.
+
+\section{Input Representations}
+\label{sec:inputs}
+
+\subsection{Inertial Windows}
+\label{sec:imu-input}
+
+Each inertial window holds 160 samples of the six channels (three-axis
+acceleration and three-axis angular velocity) recorded at 80\,Hz. Before entering
+a model, the window is resampled to 200 time steps by linear interpolation along
+the time axis, so that all inertial models take inputs of size $200 \times 6$.
+The target length of 200 was chosen to match the time resolution of the audio
+spectrogram, which has 198 frames per window (Section~\ref{sec:logmel}). This
+allows both modalities to share one time axis in the early fusion model
+(Section~\ref{sec:early-fusion}) without coarsening the audio representation, and
+using the same length in all inertial models keeps their inputs identical across
+the experiments. Missing or non-finite values, which can remain at the very edges of a recording
+after decimation, are replaced by zero.
+
+Accelerometer and gyroscope channels have different physical units and value
+ranges. Each channel is therefore standardised to zero mean and unit variance.
+The mean and standard deviation of each channel are computed on the training
+split only and then applied unchanged to the validation data, so that no
+statistics of the validation set enter the training process. The same statistics
+are later embedded in the device firmware, where they are applied to the live
+sensor data (Chapter~\ref{ch:implementation}).
+
+\subsection{Audio Log-Mel Spectrograms}
+\label{sec:logmel}
+
+Raw audio windows of 32\,000 samples are too long to be used directly as input
+to a small model. Each window is therefore converted into a log-mel spectrogram,
+a time-frequency representation that is widely used for sound classification
+{[}CITATION{]}. The conversion consists of three steps:
+
+\begin{enumerate}
+  \item a short-time Fourier transform (STFT) with frames of 25\,ms (400
+  samples), a hop of 10\,ms (160 samples) and an FFT length of 512;
+  \item a projection of the magnitude spectrum onto 40 mel-spaced frequency bands
+  between 20\,Hz and 8\,kHz {[}CITATION{]};
+  \item the natural logarithm of the band energies, with a small constant
+  ($10^{-6}$) added to avoid the logarithm of zero.
+\end{enumerate}
+
+A two-second window produces a spectrogram of 198 frames $\times$ 40 mel bands.
+This reduces the input size by roughly a factor of four compared with the raw
+waveform, while keeping the spectral and temporal structure that distinguishes,
+for example, the continuous whine of a powered screwdriver from the short,
+broadband impacts of hammering. As with the inertial data, the spectrogram is
+standardised per mel band using the mean and standard deviation of the training
+split. Figure~\ref{fig:logmel} summarises the feature extraction, and
+Table~\ref{tab:inputs} lists the resulting input representations.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=3.5mm, every node/.style={blk, text width=7.2cm}]
+  \node (wav) {Audio window: 2\,s, 32\,000 samples at 16\,kHz};
+  \node (stft) [below=of wav] {STFT: 25\,ms frames, 10\,ms hop, FFT length 512};
+  \node (mag) [below=of stft] {Magnitude spectrum (257 frequency bins per frame)};
+  \node (mel) [below=of mag] {Mel filter bank: 40 bands, 20\,Hz--8\,kHz};
+  \node (log) [below=of mel] {Natural logarithm, $\log(E + 10^{-6})$};
+  \node (norm) [below=of log] {Per-band standardisation (training statistics)};
+  \node (out) [below=of norm] {Log-mel spectrogram: 198 frames $\times$ 40 bands};
+  \foreach \a/\b in {wav/stft, stft/mag, mag/mel, mel/log, log/norm, norm/out}
+    \draw[flow] (\a) -- (\b);
+\end{tikzpicture}
+\caption{Conversion of a two-second audio window into the log-mel spectrogram used
+as input to the acoustic models.}
+\label{fig:logmel}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|l|p{3.1cm}|p{3.3cm}|X|}
+\hline
+\textbf{Modality} & \textbf{Raw window} & \textbf{Model input} & \textbf{Normalisation} \\
+\hline
+Inertial & $160 \times 6$ at 80\,Hz & $200 \times 6$ (linear resampling) & per channel, training statistics \\
+Audio & 32\,000 samples at 16\,kHz & $198 \times 40$ log-mel & per mel band, training statistics \\
+\hline
+\end{tabularx}
+\caption{Input representations of the two modalities.}
+\label{tab:inputs}
+\end{table}
+
+\section{Single-Modality Models}
+\label{sec:single}
+
+\subsection{Inertial Model}
+\label{sec:imu-model}
+
+The inertial model is a one-dimensional convolutional neural network (1D CNN)
+that convolves along the time axis of the window. 1D CNNs are a common choice for
+wearable activity recognition because they learn local motion patterns directly
+from the raw signal and remain small enough for embedded use {[}CITATION{]}.
+
+The network has two convolutional blocks. The first block applies 64 filters with
+a kernel size of 5, followed by batch normalisation and max pooling with a factor
+of 2. The second block applies 128 filters with a kernel size of 3, followed by
+batch normalisation. Global average pooling then reduces the temporal dimension
+to a single feature vector. This vector passes through a dense layer with 64
+units, which also serves as the embedding for embedding-level fusion
+(Section~\ref{sec:embedding-fusion}), and through dropout with a rate of 0.3,
+before a softmax output layer with one unit per class.
+
+\subsection{Audio Model and Temporal Pooling Variants}
+\label{sec:audio-model}
+
+The audio model treats the log-mel spectrogram as a single-channel image and
+processes it with a two-dimensional CNN {[}CITATION{]}. It has two convolutional
+blocks with 32 and 64 filters of size $3 \times 3$, each followed by batch
+normalisation and $2 \times 2$ max pooling. The resulting feature map has a size
+of $49 \times 10 \times 64$ (time $\times$ frequency $\times$ channels).
+
+How this feature map is reduced to a single vector determines which properties of
+the sound the classifier can use. Three variants were therefore evaluated
+(Figure~\ref{fig:audio-variants}):
+
+\begin{itemize}
+  \item \textbf{Global average pooling (GAP).} The feature map is averaged over
+  both time and frequency {[}CITATION{]}. This is the standard approach and gives a compact model. However,
+  averaging over time removes the information about how the sound develops within
+  the window. Two activities with a similar average spectrum but a different
+  temporal pattern, such as the regular strikes of a hammer and the steady sound
+  of a screwdriver, can then become hard to separate.
+  \item \textbf{Recurrent pooling (GRU).} The feature map is reshaped into a
+  sequence of 49 time steps with 640 features each and passed through a
+  bidirectional gated recurrent unit (GRU) with 32 units per direction
+  {[}CITATION{]}. The GRU summarises the sequence while keeping its
+  temporal order, so the model can use rhythm and envelope information.
+  \item \textbf{Hybrid pooling.} Both summaries are computed in parallel and
+  concatenated: the GAP vector, which describes the average timbre of the
+  window, and the GRU output, which describes its temporal structure. The
+  classifier can then rely on whichever information is useful for a given class.
+\end{itemize}
+
+In all three variants, the pooled vector passes through a dense layer with 64
+units and dropout with a rate of 0.4, followed by the softmax output.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=3.5mm and 6mm, every node/.style={blk}]
+  \node[text width=3.4cm] (in) {Input\\$198 \times 40 \times 1$};
+  \node[text width=3.4cm, below=of in] (c1) {Conv2D 32, $3\times3$\\BN, MaxPool $2\times2$};
+  \node[text width=3.4cm, below=of c1] (c2) {Conv2D 64, $3\times3$\\BN, MaxPool $2\times2$};
+  \node[text width=3.4cm, below=of c2] (fm) {Feature map\\$49 \times 10 \times 64$};
+  \foreach \a/\b in {in/c1, c1/c2, c2/fm} \draw[flow] (\a) -- (\b);
+
+  % (a) GAP
+  \node[text width=2.8cm, right=12mm of in] (ga) {(a) GAP};
+  \node[text width=2.8cm, below=of ga] (gd) {Dense 64\\Dropout 0.4};
+  \node[text width=2.8cm, below=of gd] (go) {Softmax (9)};
+  \draw[flow] (ga) -- (gd); \draw[flow] (gd) -- (go);
+
+  % (b) GRU
+  \node[text width=2.8cm, right=of ga] (ra) {(b) Reshape $49 \times 640$};
+  \node[text width=2.8cm, below=of ra] (rg) {BiGRU, 32 units};
+  \node[text width=2.8cm, below=of rg] (rd) {Dense 64\\Dropout 0.4};
+  \node[text width=2.8cm, below=of rd] (ro) {Softmax (9)};
+  \foreach \a/\b in {ra/rg, rg/rd, rd/ro} \draw[flow] (\a) -- (\b);
+
+  % (c) hybrid
+  \node[text width=2.8cm, right=of ra] (ha) {(c) GAP $\parallel$ BiGRU};
+  \node[text width=2.8cm, below=of ha] (hc) {Concatenate\\(64 + 64)};
+  \node[text width=2.8cm, below=of hc] (hd) {Dense 64\\Dropout 0.4};
+  \node[text width=2.8cm, below=of hd] (ho) {Softmax (9)};
+  \foreach \a/\b in {ha/hc, hc/hd, hd/ho} \draw[flow] (\a) -- (\b);
+
+  \draw[flow] (fm.east) -| ($(ga.west)+(-5mm,0)$) -- (ga.west);
+  \draw[flow] (fm.east) -- ++(4mm,0) |- ($(ra.north)+(0,4mm)$) -- (ra.north);
+  \draw[flow] (fm.east) -- ++(4mm,0) |- ($(ha.north)+(0,4mm)$) -- (ha.north);
+\end{tikzpicture}}
+\caption{Audio model with a shared convolutional stem and the three pooling
+variants: (a) global average pooling, (b) recurrent pooling with a bidirectional
+GRU, and (c) hybrid pooling, which concatenates both summaries.}
+\label{fig:audio-variants}
+\end{figure}
+
+Because audio content depends less on where the sensor is worn than inertial
+data does, the standalone audio model is trained on audio windows from three body
+positions: the dominant wrist, the non-dominant wrist and the waist. This roughly
+triples the amount of acoustic training data. The pooled audio is used only for
+the standalone audio model. All fusion models use dominant-wrist audio
+exclusively, so that every audio window is paired with the inertial window from
+the same device and time interval.
+
+The pooling variants are compared on the standalone audio model. Within the
+fusion models, the acoustic component uses the GAP variant. With 23\,945
+parameters it is about six times smaller than the recurrent variants, and it
+avoids recurrent layers, whose sequential computation is costly on the target
+microcontroller. This keeps all fusion models within reach of the deployment study
+in Chapter~\ref{ch:implementation}. The performance of the three variants is
+reported in Chapter~\ref{ch:results}. Table~\ref{tab:single-arch} summarises both
+single-modality architectures.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Layer} & \textbf{IMU CNN} & \textbf{Audio CNN} \\
+\hline
+Input & $200 \times 6$ & $198 \times 40 \times 1$ \\
+Block 1 & Conv1D 64, kernel 5, BN, MaxPool 2 & Conv2D 32, $3 \times 3$, BN, MaxPool $2 \times 2$ \\
+Block 2 & Conv1D 128, kernel 3, BN & Conv2D 64, $3 \times 3$, BN, MaxPool $2 \times 2$ \\
+Pooling & Global average & GAP / BiGRU(32) / GAP + BiGRU \\
+Head & Dense 64, Dropout 0.3 & Dense 64, Dropout 0.4 \\
+Output & Softmax (9 classes) & Softmax (9 classes) \\
+\hline
+Parameters & 36\,297 & 23\,945 (GAP) / 153\,353 (GRU) / 157\,449 (hybrid) \\
+\hline
+\end{tabularx}
+\caption{Architecture of the single-modality models. All convolutional and dense
+layers except the output use ReLU activations.}
+\label{tab:single-arch}
+\end{table}
+
+\section{Fusion Architectures}
+\label{sec:fusion}
+
+The three fusion strategies differ in the point along the processing chain at
+which the two modalities are combined {[}CITATION{]}.
+Figure~\ref{fig:fusion-overview} gives an overview.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[node distance=4mm, every node/.style={blk}]
+  % --- early fusion ---
+  \node[text width=1.9cm] (e-imu) {IMU\\$200 \times 6$};
+  \node[text width=1.9cm, right=3mm of e-imu] (e-aud) {Log-mel\\$\to 200 \times 40$};
+  \node[text width=4.3cm, below=8mm of $(e-imu)!0.5!(e-aud)$] (e-cat) {Concatenate\\$200 \times 46$};
+  \node[text width=4.3cm, below=of e-cat] (e-cnn) {1D CNN};
+  \node[text width=4.3cm, below=of e-cnn] (e-out) {Softmax};
+  \draw[flow] (e-imu) -- (e-cat); \draw[flow] (e-aud) -- (e-cat);
+  \draw[flow] (e-cat) -- (e-cnn); \draw[flow] (e-cnn) -- (e-out);
+  \node[draw=none, above=5mm of $(e-imu)!0.5!(e-aud)$, font=\small\bfseries] {Early fusion};
+
+  % --- embedding-level fusion ---
+  \node[text width=1.9cm, right=14mm of e-aud] (m-imu) {IMU};
+  \node[text width=1.9cm, right=3mm of m-imu] (m-aud) {Log-mel};
+  \node[text width=1.9cm, below=of m-imu] (m-icnn) {IMU CNN\\(frozen)};
+  \node[text width=1.9cm, below=of m-aud] (m-acnn) {Audio CNN\\(frozen)};
+  \node[text width=4.3cm, below=8mm of $(m-icnn)!0.5!(m-acnn)$] (m-cat) {Concatenate embeddings\\$64 + 64 = 128$};
+  \node[text width=4.3cm, below=of m-cat] (m-head) {Fusion head\\Dense 64, Dropout 0.4};
+  \node[text width=4.3cm, below=of m-head] (m-out) {Softmax};
+  \draw[flow] (m-imu) -- (m-icnn); \draw[flow] (m-aud) -- (m-acnn);
+  \draw[flow] (m-icnn) -- (m-cat); \draw[flow] (m-acnn) -- (m-cat);
+  \draw[flow] (m-cat) -- (m-head); \draw[flow] (m-head) -- (m-out);
+  \node[draw=none, above=5mm of $(m-imu)!0.5!(m-aud)$, font=\small\bfseries] {Embedding-level fusion};
+
+  % --- decision-level fusion ---
+  \node[text width=1.9cm, right=14mm of m-aud] (d-imu) {IMU};
+  \node[text width=1.9cm, right=3mm of d-imu] (d-aud) {Log-mel};
+  \node[text width=1.9cm, below=of d-imu] (d-icnn) {IMU CNN};
+  \node[text width=1.9cm, below=of d-aud] (d-acnn) {Audio CNN};
+  \node[text width=1.9cm, below=of d-icnn] (d-ip) {$\mathbf{p}^{\mathrm{IMU}}$};
+  \node[text width=1.9cm, below=of d-acnn] (d-ap) {$\mathbf{p}^{\mathrm{audio}}$};
+  \node[text width=4.3cm, below=8mm of $(d-ip)!0.5!(d-ap)$] (d-avg) {Weighted average\\(global or per-class weights)};
+  \node[text width=4.3cm, below=of d-avg] (d-out) {Argmax};
+  \draw[flow] (d-imu) -- (d-icnn); \draw[flow] (d-aud) -- (d-acnn);
+  \draw[flow] (d-icnn) -- (d-ip); \draw[flow] (d-acnn) -- (d-ap);
+  \draw[flow] (d-ip) -- (d-avg); \draw[flow] (d-ap) -- (d-avg);
+  \draw[flow] (d-avg) -- (d-out);
+  \node[draw=none, above=5mm of $(d-imu)!0.5!(d-aud)$, font=\small\bfseries] {Decision-level fusion};
+\end{tikzpicture}}
+\caption{The three fusion strategies. Early fusion combines the raw inputs before
+learning, embedding-level fusion combines learned 64-dimensional representations
+of two frozen backbones, and decision-level fusion combines the class
+probabilities of two independently trained models.}
+\label{fig:fusion-overview}
+\end{figure}
+
+\subsection{Early Fusion}
+\label{sec:early-fusion}
+
+Early fusion combines the two modalities before any learning takes place, so
+that a single network learns from both signals jointly. Two forms were
+implemented.
+
+\textbf{Channel concatenation.} The log-mel spectrogram ($198 \times 40$) is
+resampled along its time axis to 200 frames, matching the length of the inertial
+window. The two inputs are then concatenated along the feature axis, giving a
+$200 \times 46$ input with 6 inertial and 40 acoustic channels. Each of the 46
+channels is standardised with its own training statistics. This step matters more
+here than in the single-modality models, because raw inertial values and log-mel
+energies lie on very different scales. The fused input is processed by a 1D CNN
+with the same structure as the inertial model (Section~\ref{sec:imu-model}).
+
+\textbf{Unified spectrogram.} Here the inertial data are also converted into
+spectrograms, so that both modalities share one image-like representation. A
+short-time Fourier transform with a frame length of 20 samples, a hop of 2
+samples and an FFT length of 32 is applied to each of the six inertial axes. The
+log magnitudes are resized to the $198 \times 40$ grid of the audio spectrogram
+by bilinear interpolation. The six inertial spectrograms and the audio
+spectrogram are stacked as the seven channels of a single input and processed by
+the 2D audio CNN with global average pooling.
+
+\subsection{Embedding-Level Fusion}
+\label{sec:embedding-fusion}
+
+Embedding-level fusion first trains the inertial and the acoustic model
+separately, as described in Section~\ref{sec:single}. Their weights are then
+frozen, and for each window the outputs of the 64-unit dense layer are taken as
+embeddings. The two 64-dimensional embeddings are concatenated into a
+128-dimensional vector, which is the input to a small fusion head: a dense layer
+with 64 units, dropout with a rate of 0.4 and a softmax output (8841 parameters).
+Only the fusion head is trained in this second stage. It can learn how the two
+modalities relate to each other without changing the feature extraction that each
+backbone has already learned.
+
+\subsection{Decision-Level Fusion}
+\label{sec:decision-fusion}
+
+Decision-level fusion combines the class probabilities predicted by the two
+independently trained models {[}CITATION{]}. For a window $x$, the fused probability
+of class $c$ is a weighted average
+\begin{equation}
+  p_c(x) = w \cdot p^{\mathrm{IMU}}_c(x) + (1 - w) \cdot p^{\mathrm{audio}}_c(x),
+  \qquad w \in [0, 1],
+  \label{eq:global-fusion}
+\end{equation}
+and the predicted class is the one with the highest fused probability. The
+weight $w$ is selected by a grid search over the values $0, 0.05, \dots, 1$,
+keeping the value that gives the highest accuracy on the validation data.
+Compared with a trained fusion head, this method has only a single free
+parameter and is therefore less prone to overfitting on a small dataset.
+
+A single weight, however, assumes that the relative reliability of the two
+modalities is the same for every class. This assumption does not hold for the
+present activity set. For some activities the motion pattern is distinctive
+while the sound is not; standing idle and measuring, for example, produce hardly
+any sound. For others the opposite is true, and the powered screwdriver is the
+clearest example of an activity with a distinctive acoustic signature. The method
+was therefore extended to one weight per class, which gives a weight vector
+$\mathbf{w} = (w_1, \dots, w_C)$ and
+\begin{equation}
+  p_c(x) = w_c \cdot p^{\mathrm{IMU}}_c(x) + (1 - w_c) \cdot p^{\mathrm{audio}}_c(x).
+  \label{eq:perclass-fusion}
+\end{equation}
+The only difference to Equation~\ref{eq:global-fusion} is that the weight now
+carries the index $c$. When the fused model computes the score of a particular
+class, it uses the weight of that class, and it can therefore rely on whichever
+sensor is more informative for that class. A value of $w_c$ close to 1 means that
+the score of class $c$ is determined mainly by the inertial model, and a value
+close to 0 means that it is determined mainly by the acoustic model.
+
+A short example illustrates the effect. Consider a window of the class
+\texttt{measuring}, for which the two models produce the probabilities shown in
+Table~\ref{tab:fusion-example}; only three classes are shown for readability. The
+inertial model recognises the activity, whereas the acoustic model hears almost
+silence and leans towards \texttt{idle}. With a global weight of $w = 0.5$, the
+correct class wins only by a small margin. If the weight of \texttt{measuring} is
+raised to $w_{\mathrm{measuring}} = 0.9$, its score is taken almost entirely from
+the more reliable inertial model, and the margin increases clearly. The score of
+\texttt{idle} does not change, because its own weight has not changed.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|}
+\hline
+ & \texttt{measuring} & \texttt{idle} & \texttt{hammering} \\
+\hline
+$\mathbf{p}^{\mathrm{IMU}}$ & 0.70 & 0.25 & 0.05 \\
+$\mathbf{p}^{\mathrm{audio}}$ & 0.20 & 0.60 & 0.20 \\
+\hline
+Global weight, $w = 0.5$ & \textbf{0.45} & 0.425 & 0.125 \\
+Per-class weight, $w_{\mathrm{measuring}} = 0.9$, others 0.5 & \textbf{0.65} & 0.425 & 0.125 \\
+\hline
+\end{tabular}
+\caption{Illustrative example of global and per-class decision-level fusion for a
+\texttt{measuring} window. The values are chosen for illustration and are not
+taken from the experiments.}
+\label{tab:fusion-example}
+\end{table}
+
+The nine weights cannot be found by simply trying every combination. With 21
+candidate values per weight, this would require $21^9 \approx 8 \cdot 10^{11}$
+evaluations. Instead, the weights are determined by coordinate ascent, which
+adjusts one weight at a time while keeping the others fixed:
+
+\begin{enumerate}
+  \item \textbf{Initialisation.} All nine class weights are set to the best global
+  weight from Equation~\ref{eq:global-fusion}. The search therefore starts from
+  the result of global fusion and cannot end with a lower validation accuracy.
+  \item \textbf{Adjusting one class.} For the first class, its weight is set in
+  turn to each of the 21 values $0, 0.05, \dots, 1$, while the weights of all
+  other classes stay unchanged. For each value, all validation windows are fused
+  with Equation~\ref{eq:perclass-fusion} and the overall accuracy is computed. The
+  weight is replaced only if one of the values gives a strictly higher accuracy
+  than the current setting.
+  \item \textbf{All classes.} Step~2 is repeated for the second class, the third
+  class and so on, until every class has been adjusted once. This is one pass.
+  \item \textbf{Second pass.} Because changing one weight can slightly shift the
+  best value of another, the whole pass is repeated once more.
+\end{enumerate}
+
+In total, the search evaluates $2 \times 9 \times 21 = 378$ weight settings, which
+takes only a fraction of a second. Two passes are sufficient because the classes
+interact only weakly. Changing $w_c$ affects only those windows whose decision was
+already close between class $c$ and another class; for most windows one class
+leads clearly, and a single weight cannot change the outcome. The resulting
+weights can be read as the degree of trust that the fused model places in each
+modality for each class, which also makes them useful for interpreting the
+results in Chapter~\ref{ch:results}. Figure~\ref{fig:perclass-fusion} summarises
+the procedure.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=4mm and 6mm, every node/.style={blk}]
+  \node[text width=2.6cm] (pi) {$\mathbf{p}^{\mathrm{IMU}}$\\(9 probabilities)};
+  \node[text width=2.6cm, right=of pi] (w) {$\mathbf{w}$\\(9 class weights)};
+  \node[text width=2.6cm, right=of w] (pa) {$\mathbf{p}^{\mathrm{audio}}$\\(9 probabilities)};
+  \node[text width=8.4cm, below=7mm of w] (comb) {$p_c = w_c\, p^{\mathrm{IMU}}_c + (1 - w_c)\, p^{\mathrm{audio}}_c$ for each class $c$};
+  \node[text width=8.4cm, below=of comb] (am) {Predicted class $= \arg\max_c p_c$};
+  \draw[flow] (pi) -- (comb); \draw[flow] (w) -- (comb); \draw[flow] (pa) -- (comb);
+  \draw[flow] (comb) -- (am);
+
+  \node[text width=8.4cm, below=10mm of am] (s1) {Initialise all $w_c$ with the best global weight};
+  \node[text width=8.4cm, below=of s1] (s2) {For each class $c$: scan $w_c \in \{0, 0.05, \dots, 1\}$, keep the value with the highest validation accuracy};
+  \node[text width=8.4cm, below=of s2] (s3) {Repeat for two passes over all classes};
+  \draw[flow] (s1) -- (s2); \draw[flow] (s2) -- (s3);
+  \node[grp, fit=(s1)(s2)(s3), label={[font=\footnotesize]above:Weight search (coordinate ascent)}] {};
+\end{tikzpicture}
+\caption{Decision-level fusion with per-class weights (top) and the coordinate-ascent
+search used to determine the weights on the validation data (bottom).}
+\label{fig:perclass-fusion}
+\end{figure}
+
+\section{Classical Baseline}
+\label{sec:classical}
+
+To place the learned models in context, a conventional approach based on
+hand-crafted features was also evaluated. From each inertial window, six
+statistics are computed per channel: mean, standard deviation, minimum, maximum,
+root mean square and zero-crossing rate, which gives 36 inertial features. From
+each log-mel spectrogram, the mean and standard deviation of every mel band over
+time are computed, which gives 80 acoustic features. The two feature sets are
+concatenated into a 116-dimensional vector (Table~\ref{tab:features}), so the
+baseline also uses feature-level fusion.
+
+A random forest with 300 trees is trained on these vectors, with balanced class
+weights to account for the class imbalance {[}CITATION{]}. Random forests need no feature scaling and give robust results on small
+tabular datasets, which makes them a common reference point in activity
+recognition {[}CITATION{]}.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|l|X|r|}
+\hline
+\textbf{Modality} & \textbf{Features} & \textbf{Count} \\
+\hline
+Inertial & mean, standard deviation, minimum, maximum, RMS and zero-crossing rate for each of the 6 channels & 36 \\
+Audio & mean and standard deviation over time for each of the 40 mel bands & 80 \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Total}} & \textbf{116} \\
+\hline
+\end{tabularx}
+\caption{Hand-crafted features of the classical baseline.}
+\label{tab:features}
+\end{table}
+
+\section{Deployment-Oriented Model Variants}
+\label{sec:small-models}
+
+The models described so far were designed for offline evaluation. On the target
+microcontroller, however, inference time and memory usage are strict limits.
+The TensorFlow Lite Micro build for this platform executes convolutions with
+unaccelerated reference kernels, so their cost grows directly with the number of
+filters and with the size of the feature maps (Chapter~\ref{ch:implementation}).
+Reduced
+variants were therefore created that keep the overall architecture but use fewer
+filters:
+
+\begin{itemize}
+  \item \textbf{Small early fusion model.} The structure of the
+  channel-concatenation model with 32 and 64 instead of 64 and 128 filters. This
+  reduces the number of multiply-accumulate operations, and with it the inference
+  time, by roughly a factor of four.
+  \item \textbf{Small inertial backbone.} A 1D CNN with 32 and 64 filters.
+  \item \textbf{Small audio backbone.} A 2D CNN with 16 and 32 filters. Its
+  convolutions use strides of 4 and 2 instead of separate pooling layers, so the
+  downsampling happens within the convolution itself. As a result, a feature map
+  at the full $198 \times 40$ resolution never has to be held in memory, which
+  would otherwise take up a large part of the device's working memory.
+\end{itemize}
+
+The small backbones are used for the small embedding-level and decision-level
+fusion models. Because these models have less capacity, three regularisation
+measures were added to reduce overfitting: L2 weight decay ($10^{-4}$) on all
+learned layers, higher dropout rates (0.4 and 0.5), and label smoothing of 0.1 in
+the loss function {[}CITATION{]}.
+
+In addition, the training data of the small backbones are augmented. One
+augmented copy is generated for each training window, so that the training set
+doubles in size; the validation data are never augmented.
+
+\begin{itemize}
+  \item \textbf{Inertial windows} receive a small random three-dimensional rotation
+  of up to $\pm 15^\circ$, applied jointly to the accelerometer and gyroscope axes
+  to mimic small changes in how the device sits on the wrist, together with
+  per-channel scaling (factor 0.9--1.1), additive noise (3\,\% of the channel's
+  standard deviation) and a mild time warp (speed factor 0.9--1.1)
+  {[}CITATION{]}.
+  \item \textbf{Spectrograms} receive a small circular time shift of up to
+  $\pm 10$ frames and SpecAugment-style masking with two random time masks of up
+  to 20 frames and two frequency masks of up to 6 bands, filled with the mean
+  value of the spectrogram {[}CITATION{]}.
+\end{itemize}
+
+Table~\ref{tab:small-models} compares the standard and the small variants.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|p{2.6cm}|X|X|}
+\hline
+\textbf{Model} & \textbf{Standard} & \textbf{Small} \\
+\hline
+Early fusion (concatenation) & Conv1D 64 / 128; 49\,097 parameters & Conv1D 32 / 64; 18\,729 parameters \\
+IMU backbone & Conv1D 64 / 128; 36\,297 parameters & Conv1D 32 / 64, L2, dropout 0.4; 12\,329 parameters \\
+Audio backbone & Conv2D 32 / 64 with max pooling; 23\,945 parameters & Conv2D 16 / 32 with strides 4 / 2, L2, dropout 0.5; 7\,689 parameters \\
+Label smoothing & -- & 0.1 (backbones) \\
+Augmentation & -- & one augmented copy per training window (backbones) \\
+\hline
+\end{tabularx}
+\caption{Standard and deployment-oriented (small) model variants. Parameter counts
+refer to the nine-class output layer.}
+\label{tab:small-models}
+\end{table}
+
+\section{Training Procedure}
+\label{sec:training}
+
+\subsection{Software and Hardware Environment}
+\label{sec:environment}
+
+All models were implemented in Python~3.10 with TensorFlow~2.10 and Keras
+{[}CITATION{]}. Training ran on an NVIDIA GeForce
+RTX~4070 Laptop GPU through the DirectML backend for Windows. This backend
+supports TensorFlow only up to version~2.10, which fixed the framework version for
+the whole project. Two parts of the pipeline could not run on the GPU with this
+backend and had to be adapted: the short-time Fourier transform used for the
+spectrograms was moved to the CPU, and the fused recurrent kernel of the GRU layer
+was replaced by an unrolled implementation. Both changes affect only where and how
+the computation is executed, not its result. Data preparation used NumPy, pandas
+and librosa {[}CITATION{]}, and the classical baseline
+used scikit-learn {[}CITATION{]}.
+
+\subsection{Training Settings}
+\label{sec:settings}
+
+All neural networks were trained with the settings listed in
+Table~\ref{tab:training}. The class imbalance described in
+Section~\ref{sec:stats} is handled through class weights in the loss function.
+The weight of each class is inversely proportional to its frequency in the
+training split, so that errors on rare classes count more than errors on frequent
+ones {[}CITATION{]}. The training data themselves are left unchanged, without
+oversampling or undersampling.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|p{3.6cm}|X|}
+\hline
+\textbf{Setting} & \textbf{Value} \\
+\hline
+Optimiser & Adam {[}CITATION{]} \\
+Learning rate & $10^{-3}$, constant \\
+Batch size & 32 \\
+Loss & Categorical cross-entropy (label smoothing 0.1 for the small backbones) \\
+Class weighting & Inverse class frequency (``balanced'') \\
+Epochs & 150 for backbones and early-fusion models; at most 80 for the fusion head \\
+Model selection & Weights of the epoch with the highest validation accuracy \\
+Fusion head & Early stopping (patience 15), learning rate halved on plateau (patience 6, minimum $10^{-5}$) \\
+\hline
+\end{tabularx}
+\caption{Training settings shared by all neural network models.}
+\label{tab:training}
+\end{table}
+
+The backbones and the early-fusion models are trained for a fixed 150 epochs at a
+constant learning rate. On a small validation set, the validation accuracy can
+fluctuate noticeably from one epoch to the next, so the weights at the end of
+training are not necessarily the best ones. After training, each model is
+therefore set back to the weights of the epoch with the highest validation
+accuracy.
+
+In the Keras version used here, the standard early-stopping callback restores the
+best weights only when it actually stops training early. If training runs the full
+number of epochs, the weights of the last epoch are kept without any warning. A
+small custom callback was therefore written that stores the best weights during
+training and restores them at the end. The effect of this choice is examined in
+Chapter~\ref{ch:results}. Because the best epoch is selected on the validation
+data, the procedure introduces a slight optimistic bias into the reported results,
+a point taken up in the discussion of limitations in
+Chapter~\ref{ch:discussion}.
+
+\section{Evaluation Protocol}
+\label{sec:evaluation}
+
+\subsection{Grouped Train/Validation Split}
+\label{sec:split}
+
+The windows were created with 50\,\% overlap (Section~\ref{sec:windowing}), so
+neighbouring windows share half of their samples. A random split would place such
+neighbours on both sides of the train/validation boundary. The model would then
+be evaluated on data that it had partly seen during training, and the measured
+accuracy would overestimate its performance on new data {[}CITATION{]}.
+
+To prevent this, the windows are first grouped into activity instances.
+Consecutive windows with the same label belong to the same group as long as their
+start times are at most 1.5\,s apart, that is, 1.5 times the window stride.
+Consecutive windows of one uninterrupted activity occurrence start exactly 1\,s
+apart, so the additional 0.5\,s serves as a margin: small irregularities in the
+window start times do not split one occurrence into several groups, while
+occurrences separated by a pause or by another activity, which leave a gap of at
+least one further stride, are still kept apart. The 2565 windows form 125 such groups. The split is then made per class: the groups of
+a class are shuffled, and whole groups are assigned to the validation set until it
+holds at least 20\,\% of that class's windows. The remaining groups form the
+training set. Every activity instance therefore lies entirely in one of the two
+sets, and a fixed random seed makes the split identical for all models, so that
+their results can be compared directly. Figure~\ref{fig:grouped-split} illustrates
+the principle.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[x=1cm, y=1cm, font=\scriptsize]
+  % activity instances on the timeline
+  \foreach \a/\b/\s/\t in {0/3.5/10/{instance 1 (A)}, 3.5/6.5/30/{instance 2 (B)},
+                           6.5/9.5/10/{instance 3 (A)}, 9.5/12/30/{instance 4 (B)}} {
+    \fill[black!\s] (\a,0) rectangle (\b,0.6);
+    \draw (\a,0) rectangle (\b,0.6);
+    \node at ({(\a+\b)/2},0.3) {\t};
+  }
+  \draw[-{Latex[length=1.6mm]}] (0,-0.3) -- (12,-0.3) node[right] {time};
+  % overlapping windows of instance 1
+  \foreach \i in {0,1,2,3} \draw[|-|] (0.5*\i,-0.6-0.22*\i) -- (0.5*\i+2,-0.6-0.22*\i);
+  \node[anchor=west] at (3.8,-0.93) {overlapping windows within instance 1};
+  % grouped assignment
+  \node[anchor=west, font=\scriptsize\bfseries] at (0,-1.75) {Grouped split (used):};
+  \foreach \a/\b/\s in {0/3.5/train, 3.5/6.5/val, 6.5/9.5/val, 9.5/12/train}
+    \draw[thick] (\a,-2.35) rectangle (\b,-2.0) node[midway] {\s};
+  % random assignment
+  \node[anchor=west, font=\scriptsize\bfseries] at (0,-2.85) {Random split (avoided):};
+  \foreach \i/\s in {0/train,1/val,2/train,3/val,4/train}
+    \draw (0.7*\i,-3.45) rectangle (0.7*\i+0.7,-3.1) node[midway] {\s};
+  \node[anchor=west] at (3.8,-3.28) {overlapping windows of instance 1 fall on both sides};
+\end{tikzpicture}}
+\caption{Grouped splitting. Overlapping windows are grouped into activity
+instances, and whole instances are assigned to either the training or the
+validation set. A random split would distribute the overlapping windows of one
+instance across both sets.}
+\label{fig:grouped-split}
+\end{figure}
+
+Table~\ref{tab:split} shows the resulting split. Because only whole groups can be
+moved, the validation share of a class is not exactly 20\,\%. It exceeds the
+target considerably when a class consists of a few long instances, as is the case
+for \texttt{walk}, \texttt{measuring} and \texttt{place\_container}, where a single
+group already contains a large part of the class. Overall, 946 windows (37\,\%)
+fall into the validation set and 1619 windows (63\,\%) into the training set. For
+\texttt{place\_container}, only 23 windows remain for training. This uneven split
+is a consequence of keeping activity instances intact, and its effect on the
+results is discussed in Chapter~\ref{ch:discussion}.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|l|r|r|r|r|}
+\hline
+\textbf{Class} & \textbf{Training} & \textbf{Validation} & \textbf{Total} & \textbf{Validation share} \\
+\hline
+\texttt{assemble\_parts}   & 130 &  36 & 166 & 22\,\% \\
+\texttt{carry\_container}  & 175 &  45 & 220 & 20\,\% \\
+\texttt{hammering}         & 170 &  80 & 250 & 32\,\% \\
+\texttt{idle}              & 187 & 120 & 307 & 39\,\% \\
+\texttt{insert\_screws}    & 185 &  61 & 246 & 25\,\% \\
+\texttt{measuring}         & 159 & 161 & 320 & 50\,\% \\
+\texttt{place\_container}  &  23 &  51 &  74 & 69\,\% \\
+\texttt{screw\_tightening} & 454 & 142 & 596 & 24\,\% \\
+\texttt{walk}              & 136 & 250 & 386 & 65\,\% \\
+\hline
+\textbf{Total}             & \textbf{1619} & \textbf{946} & \textbf{2565} & \textbf{37\,\%} \\
+\hline
+\end{tabular}
+\caption{Training and validation windows per class after the grouped split.}
+\label{tab:split}
+\end{table}
+
+\subsection{Metrics}
+\label{sec:metrics}
+
+Overall accuracy, the share of correctly classified validation windows, is used as
+the main measure for comparing the models. Because the classes are imbalanced,
+accuracy alone can hide poor performance on small classes. Precision, recall and
+F1-score are therefore also reported for each class, together with the
+macro-averaged F1-score, which gives every class the same weight {[}CITATION{]}. Confusion matrices are used to identify which activities are mistaken
+for one another. Unless stated otherwise, all results are reported on the
+validation set of the grouped split and come from a single training run per
+model.
+
+\section{Chapter Summary}
+\label{sec:ch4-summary}
+
+This chapter introduced the models compared in this thesis. Inertial windows are
+processed as $200 \times 6$ time series by a 1D CNN, and audio windows as
+$198 \times 40$ log-mel spectrograms by a 2D CNN, for which three pooling variants
+were developed to make use of the temporal structure of the sounds. The two
+modalities are combined at the input level (channel concatenation and unified
+spectrogram), at the level of learned embeddings, and at the level of class
+probabilities, where a per-class weighting reflects the different reliability of
+the two modalities across activities. A random forest on hand-crafted features
+serves as a classical baseline, and reduced, regularised variants prepare the
+deployment on the device. All models share the same input normalisation, class
+weighting, training settings, best-epoch selection and grouped train/validation
+split. Chapter~\ref{ch:implementation} describes how selected models were
+converted for execution on the wearable device, and Chapter~\ref{ch:results}
+presents the results.

@@ -1,0 +1,51 @@
+\contentsline {chapter}{Contents}{3}{chapter*.2}%
+\contentsline {chapter}{List of Figures}{5}{chapter*.3}%
+\contentsline {chapter}{List of Tables}{7}{chapter*.4}%
+\contentsline {chapter}{\nonumberline List of Abbreviations}{8}{chapter*.5}%
+\contentsline {chapter}{\numberline {1}Introduction}{9}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Background and State of the Art}{11}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Data Acquisition and Dataset Construction}{12}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Sensor Platform and Computational Constraints}{12}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Assembly Scenario and Activity Taxonomy}{13}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Data-Collection Firmware}{15}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Dual-Stream UDP Architecture}{15}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Audio Double-Buffering and Packet Framing}{15}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Microsecond Timestamping and Sequence Numbering}{16}{subsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}Multi-Device Capture and Body Placements}{17}{subsection.3.3.4}%
+\contentsline {section}{\numberline {3.4}Recording Protocol}{17}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Ground-Truth Annotation from Synchronised Video}{18}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Determination of the Audio-Video Offset}{19}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Interval Labels and Sample-Level Label Embedding}{19}{subsection.3.5.2}%
+\contentsline {section}{\numberline {3.6}Signal Conditioning}{20}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Packet-Loss Detection and Audio-Dropout Reconstruction}{21}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}IMU Decimation to 80\,Hz}{21}{subsection.3.6.2}%
+\contentsline {subsection}{\numberline {3.6.3}Audio Resampling to a Strict 16\,kHz Timeline}{22}{subsection.3.6.3}%
+\contentsline {section}{\numberline {3.7}Window Generation and Labelling}{22}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Dataset Statistics, Class Distribution, and Imbalance}{24}{section.3.8}%
+\contentsline {section}{\numberline {3.9}Data-Quality Assessment and Known Artefacts}{25}{section.3.9}%
+\contentsline {section}{\numberline {3.10}Chapter Summary}{26}{section.3.10}%
+\contentsline {chapter}{\numberline {4}Model Design and Training}{27}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Overview of the Experimental Design}{27}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Input Representations}{28}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Inertial Windows}{28}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Audio Log-Mel Spectrograms}{29}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}Single-Modality Models}{30}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Inertial Model}{30}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Audio Model and Temporal Pooling Variants}{30}{subsection.4.3.2}%
+\contentsline {section}{\numberline {4.4}Fusion Architectures}{32}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Early Fusion}{32}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Embedding-Level Fusion}{33}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Decision-Level Fusion}{33}{subsection.4.4.3}%
+\contentsline {section}{\numberline {4.5}Classical Baseline}{35}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Deployment-Oriented Model Variants}{36}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Training Procedure}{37}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}Software and Hardware Environment}{37}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}Training Settings}{38}{subsection.4.7.2}%
+\contentsline {section}{\numberline {4.8}Evaluation Protocol}{39}{section.4.8}%
+\contentsline {subsection}{\numberline {4.8.1}Grouped Train/Validation Split}{39}{subsection.4.8.1}%
+\contentsline {subsection}{\numberline {4.8.2}Metrics}{40}{subsection.4.8.2}%
+\contentsline {section}{\numberline {4.9}Chapter Summary}{40}{section.4.9}%
+\contentsline {chapter}{\numberline {5}On-Device Deployment}{42}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Results and Evaluation}{43}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Discussion}{44}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Conclusion}{45}{chapter.8}%
