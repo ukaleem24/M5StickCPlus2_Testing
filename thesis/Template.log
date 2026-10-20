@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.9.27)  7 OCT 2026 21:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.10.18)  19 OCT 2026 19:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1630,94 +1630,88 @@ Underfull \hbox (badness 10000) in paragraph at lines 720--720
 [25]) [26]
 chapter 4.
 (src/chapter4.tex
-Overfull \hbox (3.84163pt too wide) in paragraph at lines 41--45
-\OT1/cmr/m/n/12 the in-put level (early fu-sion), at the level of learned rep-r
-e-sen-ta-tions (embedding-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 inertial +
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 inertial +
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 Embedding-level
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 Frozen back-bones with a
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 inertial +
  []
 
 
-Underfull \hbox (badness 4454) in paragraph at lines 70--70
+Underfull \hbox (badness 4454) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 Decision-level fu-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 inertial +
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 70--70
+Underfull \hbox (badness 10000) in paragraph at lines 72--72
 []|\OT1/cmr/m/n/10.95 inertial +
  []
 
 [27
 
 
-] [28] [29] [30] [31] [32] [33] [34] [35] [36]
-Underfull \hbox (badness 10000) in paragraph at lines 614--614
+] [28] [29] [30] [31] [32] [33] [34] [35] [36] [37] [38]
+Underfull \hbox (badness 10000) in paragraph at lines 665--665
 []|\OT1/cmr/m/n/10.95 Early fu-sion
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 614--614
+Underfull \hbox (badness 10000) in paragraph at lines 665--665
 \OT1/cmr/m/n/10.95 (con-cate-na-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 614--614
+Underfull \hbox (badness 10000) in paragraph at lines 665--665
 []|\OT1/cmr/m/n/10.95 Audio back-
  []
 
 
-Underfull \hbox (badness 2080) in paragraph at lines 614--614
+Underfull \hbox (badness 2080) in paragraph at lines 665--665
 []|\OT1/cmr/m/n/10.95 Label smooth-
  []
 
-[37] [38] [39]) [40] [41]
+[39] [40] [41]) [42]
 chapter 5.
-[42
-
-
-]
-chapter 6.
 [43
 
 
 ]
-chapter 7.
+chapter 6.
 [44
+
+
+]
+chapter 7.
+[45
 
 
 ]
 chapter 8.
 No file Template.bbl.
 No file Template.ind.
-[45
+[46
 
 
 ] (Template.aux)
@@ -1731,9 +1725,9 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 26068 strings out of 467871
- 511429 string characters out of 5418376
- 1055607 words of memory out of 5000000
+ 26066 strings out of 467871
+ 511418 string characters out of 5418375
+ 1055277 words of memory out of 5000000
  54406 multiletter control sequences out of 15000+600000
  640218 words of font info for 82 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1764,9 +1758,9 @@ y7.pfb><C:/Users/ukale/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
 s/cm/cmsy8.pfb><C:/Users/ukale/AppData/Local/Programs/MiKTeX/fonts/type1/public
 /amsfonts/cm/cmtt10.pfb><C:/Users/ukale/AppData/Local/Programs/MiKTeX/fonts/typ
 e1/public/amsfonts/cm/cmtt12.pfb>
-Output written on Template.pdf (45 pages, 907447 bytes).
+Output written on Template.pdf (46 pages, 910369 bytes).
 PDF statistics:
- 994 PDF objects out of 1000 (max. 8388607)
- 136 named destinations out of 1000 (max. 500000)
+ 996 PDF objects out of 1000 (max. 8388607)
+ 134 named destinations out of 1000 (max. 500000)
  440 words of extra memory for PDF output out of 10000 (max. 10000000)
 
