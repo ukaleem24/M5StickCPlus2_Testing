@@ -31,12 +31,10 @@ AUDIO_RAW_FRAMES = (audio_pipeline.TARGET_SAMPLES - audio_pipeline.FRAME_LENGTH)
 export_utils.AUDIO_SPECTROGRAM_BINS = AUDIO_SPECTROGRAM_BINS
 
 
-def build_self_test_vectors(imu_quant, audio_quant, imu_channel_mean, imu_channel_std, audio_bin_mean,
-                             audio_bin_std, classes, samples_per_class=1):
-    """Real, labeled validation windows, quantized separately for the IMU and audio
-    classifiers exactly as the device would. Both models' outputs (plus the embedded
-    best-weight combination) get exercised at boot, before live capture ever runs --
-    same reasoning as export_tflite_model.py's build_self_test_vectors."""
+def load_paired_validation_windows(classes):
+    """Re-derives the grouped val split used in training and returns the raw IMU windows,
+    native log-mel spectrograms, integer labels and val indices. Shared with
+    export_embedding_fusion_model.py, which deploys the same two backbones."""
     imu_paths, audio_paths, labels = discover_paired_windows(imu_pipeline.DATA_ROOT, audio_pipeline.DATA_ROOT)
     x_imu = np.stack([load_imu_window(p) for p in imu_paths])
     x_audio_waveforms = np.stack([load_audio_waveform(p) for p in audio_paths])
@@ -48,7 +46,15 @@ def build_self_test_vectors(imu_quant, audio_quant, imu_channel_mean, imu_channe
 
     timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
     _, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
+    return x_imu, x_audio, y_encoded, val_idx
 
+
+def build_self_test_vectors(x_imu, x_audio, y_encoded, val_idx, imu_quant, audio_quant, imu_channel_mean,
+                            imu_channel_std, audio_bin_mean, audio_bin_std, classes, samples_per_class=1):
+    """Real, labeled validation windows, quantized separately for the IMU and audio
+    classifiers exactly as the device would. Both models' outputs (plus the embedded
+    per-class weight combination) get exercised at boot, before live capture ever runs --
+    same reasoning as export_tflite_model.py's build_self_test_vectors."""
     chosen_indices = []
     seen_classes = set()
     for idx in val_idx:
@@ -119,7 +125,7 @@ def write_model_settings_header(
     audio_bin_mean, audio_bin_std,
     mel_filterbank, hann_window,
     imu_quant, audio_quant,
-    best_imu_weight: float,
+    per_class_imu_weight,
 ):
     class_name_array = ",\n    ".join(f'"{name}"' for name in classes)
 
@@ -147,9 +153,10 @@ constexpr int AUDIO_SPECTROGRAM_BINS = {AUDIO_SPECTROGRAM_BINS};
 constexpr int AUDIO_RAW_FRAMES = {AUDIO_RAW_FRAMES};
 constexpr int AUDIO_MEL_BINS = {audio_pipeline.NUM_MEL_BINS};
 
-// --- Decision-level fusion: weighted-sum rule fused = w*imu_probs + (1-w)*audio_probs,
-// grid-searched in train_decision_fusion_small.py on the shared small backbones. ---
-constexpr float BEST_IMU_WEIGHT = {best_imu_weight:.10g}f;
+// --- Decision-level fusion: per-class weighted-sum rule
+// fused[c] = w[c]*imu_probs[c] + (1-w[c])*audio_probs[c], with w found by the coordinate-
+// ascent search in train_decision_fusion_small.py (index order matches CLASS_NAMES). ---
+{export_utils.format_c_array("PER_CLASS_IMU_WEIGHT", per_class_imu_weight, "float")}
 
 // --- IMU classifier quantization ---
 constexpr float IMU_INPUT_SCALE = {imu_quant["input_scale"]:.10g}f;
@@ -191,7 +198,7 @@ def main():
     classes = backbones_export["classes"]
     imu_representative_samples = backbones_export["imu_representative_samples"]
     audio_representative_samples = backbones_export["audio_representative_samples"]
-    best_imu_weight = float(decision_export["best_imu_weight"])
+    per_class_imu_weight = decision_export["per_class_imu_weight"]
 
     imu_model = tf.keras.models.load_model(EXPORT_DIR / "imu_backbone_small.keras")
     audio_model = tf.keras.models.load_model(EXPORT_DIR / "audio_backbone_small.keras")
@@ -225,13 +232,39 @@ def main():
         audio_bin_mean, audio_bin_std,
         mel_filterbank, hann_window,
         imu_quant, audio_quant,
-        best_imu_weight,
+        per_class_imu_weight,
     )
     print(f"Wrote headers to {FIRMWARE_DIR}")
 
+    x_imu, x_audio, y_encoded, val_idx = load_paired_validation_windows(classes)
+    x_imu_val = (x_imu[val_idx] - imu_channel_mean) / imu_channel_std
+    x_audio_val = (x_audio[val_idx] - audio_bin_mean) / audio_bin_std
+    y_val = y_encoded[val_idx]
+
+    imu_float = imu_model.predict(x_imu_val, verbose=0)
+    audio_float = audio_model.predict(x_audio_val, verbose=0)
+    imu_int8 = export_utils.tflite_predict(imu_tflite, x_imu_val)
+    audio_int8 = export_utils.tflite_predict(audio_tflite, x_audio_val)
+    fused_float = decision_small_pipeline.weighted_fusion_probs(imu_float, audio_float, per_class_imu_weight)
+    fused_int8 = decision_small_pipeline.weighted_fusion_probs(imu_int8, audio_int8, per_class_imu_weight)
+
+    def accuracy(probs):
+        return float(np.mean(np.argmax(probs, axis=1) == y_val))
+
+    export_utils.write_quantization_report(
+        EXPORT_DIR / "decision_fusion_small_quantization_report.json",
+        {
+            "imu_backbone_small": (accuracy(imu_float), accuracy(imu_int8)),
+            "audio_backbone_small": (accuracy(audio_float), accuracy(audio_int8)),
+            "decision_fusion_small_per_class": (accuracy(fused_float), accuracy(fused_int8)),
+        },
+        len(val_idx),
+    )
+
     print("Building self-test vectors...")
     vectors = build_self_test_vectors(
-        imu_quant, audio_quant, imu_channel_mean, imu_channel_std, audio_bin_mean, audio_bin_std, classes
+        x_imu, x_audio, y_encoded, val_idx, imu_quant, audio_quant, imu_channel_mean, imu_channel_std,
+        audio_bin_mean, audio_bin_std, classes,
     )
     write_test_vectors_header(FIRMWARE_DIR / "test_vectors.h", vectors)
     print(f"Wrote test_vectors.h ({len(vectors)} vectors)")

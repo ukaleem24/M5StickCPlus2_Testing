@@ -24,7 +24,7 @@
 \contentsline {section}{\numberline {3.8}Dataset Statistics, Class Distribution, and Imbalance}{24}{section.3.8}%
 \contentsline {section}{\numberline {3.9}Data-Quality Assessment and Known Artefacts}{25}{section.3.9}%
 \contentsline {section}{\numberline {3.10}Chapter Summary}{26}{section.3.10}%
-\contentsline {chapter}{\numberline {4}Model Design and Training}{27}{chapter.4}%
+\contentsline {chapter}{\numberline {4}Model Design, Training and Deployment}{27}{chapter.4}%
 \contentsline {section}{\numberline {4.1}Overview of the Experimental Design}{27}{section.4.1}%
 \contentsline {section}{\numberline {4.2}Input Representations}{29}{section.4.2}%
 \contentsline {subsection}{\numberline {4.2.1}Inertial Windows}{29}{subsection.4.2.1}%
@@ -41,11 +41,17 @@
 \contentsline {section}{\numberline {4.7}Training Procedure}{39}{section.4.7}%
 \contentsline {subsection}{\numberline {4.7.1}Software and Hardware Environment}{39}{subsection.4.7.1}%
 \contentsline {subsection}{\numberline {4.7.2}Training Settings}{39}{subsection.4.7.2}%
-\contentsline {section}{\numberline {4.8}Evaluation Protocol}{40}{section.4.8}%
-\contentsline {subsection}{\numberline {4.8.1}Grouped Train/Validation Split}{40}{subsection.4.8.1}%
-\contentsline {subsection}{\numberline {4.8.2}Metrics}{41}{subsection.4.8.2}%
-\contentsline {section}{\numberline {4.9}Chapter Summary}{42}{section.4.9}%
-\contentsline {chapter}{\numberline {5}On-Device Deployment}{43}{chapter.5}%
-\contentsline {chapter}{\numberline {6}Results and Evaluation}{44}{chapter.6}%
-\contentsline {chapter}{\numberline {7}Discussion}{45}{chapter.7}%
-\contentsline {chapter}{\numberline {8}Conclusion}{46}{chapter.8}%
+\contentsline {section}{\numberline {4.8}Deployment on the Wearable Device}{40}{section.4.8}%
+\contentsline {subsection}{\numberline {4.8.1}Target Platform and Software Stack}{41}{subsection.4.8.1}%
+\contentsline {subsection}{\numberline {4.8.2}Model Conversion and Integer Quantization}{41}{subsection.4.8.2}%
+\contentsline {subsection}{\numberline {4.8.3}On-Device Signal Processing}{42}{subsection.4.8.3}%
+\contentsline {subsection}{\numberline {4.8.4}Firmware Structure and Inference Loop}{44}{subsection.4.8.4}%
+\contentsline {subsection}{\numberline {4.8.5}Verification of the Deployment Pipeline}{44}{subsection.4.8.5}%
+\contentsline {section}{\numberline {4.9}Evaluation Protocol}{45}{section.4.9}%
+\contentsline {subsection}{\numberline {4.9.1}Grouped Train/Validation Split}{45}{subsection.4.9.1}%
+\contentsline {subsection}{\numberline {4.9.2}Metrics}{46}{subsection.4.9.2}%
+\contentsline {subsection}{\numberline {4.9.3}On-Device Measurements}{47}{subsection.4.9.3}%
+\contentsline {section}{\numberline {4.10}Chapter Summary}{47}{section.4.10}%
+\contentsline {chapter}{\numberline {5}Results and Evaluation}{49}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Discussion}{50}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Conclusion}{51}{chapter.7}%

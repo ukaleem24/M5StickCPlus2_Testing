@@ -47,45 +47,79 @@ def group_windows_by_instance(
     return group_ids
 
 
+# Long instances are cut into blocks of at most this many consecutive windows, so a single
+# long walking/carrying/measuring bout no longer has to go entirely into one side of the
+# split (previously this pushed some classes to 50-70% validation share).
+BLOCK_WINDOWS = 20
+WINDOW_MS = 2000
+
+
+def block_windows_by_instance(group_ids: np.ndarray, timestamps: np.ndarray,
+                              block_windows: int = BLOCK_WINDOWS) -> np.ndarray:
+    """Split each instance group into equally sized blocks of consecutive windows
+    (e.g. 45 windows -> 15/15/15, not 20/20/5) and return a block id per window."""
+    block_ids = np.empty(len(group_ids), dtype=np.int64)
+    next_id = 0
+    for group in np.unique(group_ids):
+        members = np.where(group_ids == group)[0]
+        members = members[np.argsort(timestamps[members], kind="stable")]
+        n_blocks = int(np.ceil(len(members) / block_windows))
+        for chunk in np.array_split(members, n_blocks):
+            block_ids[chunk] = next_id
+            next_id += 1
+    return block_ids
+
+
 def grouped_train_val_split(
     labels: np.ndarray,
     timestamps: np.ndarray,
     test_size: float = 0.2,
     random_state: int = 42,
     stride_ms: int = 1000,
+    return_dropped: bool = False,
 ):
     """Per-class, group-aware alternative to sklearn's `train_test_split(..., stratify=...)`.
 
-    Whole contiguous recording instances (see group_windows_by_instance) are assigned to
-    train or validation as a unit -- never split across the boundary -- while still
-    targeting each class's requested test_size fraction, the same guarantee `stratify=`
-    gives for a plain random split.
+    Contiguous recording instances (see group_windows_by_instance) are cut into blocks of
+    at most BLOCK_WINDOWS windows. Per class, shuffled blocks are added to validation only
+    when that brings the class's validation count closer to test_size, so every class
+    lands near the requested fraction. Finally, every training window whose time span
+    overlaps a validation window (start times less than one window length apart, any
+    class) is dropped from training: this keeps the block cuts leak-free and also closes
+    the overlap at activity transitions, where the last window of one activity shares
+    samples with the first window of the next.
     """
     labels = np.asarray(labels)
     timestamps = np.asarray(timestamps)
     group_ids = group_windows_by_instance(labels, timestamps, stride_ms=stride_ms)
+    block_ids = block_windows_by_instance(group_ids, timestamps)
     rng = np.random.RandomState(random_state)
 
-    train_idx: list[int] = []
-    val_idx: list[int] = []
+    is_val = np.zeros(len(labels), dtype=bool)
     for class_label in sorted(set(labels.tolist())):
         class_indices = np.where(labels == class_label)[0]
-        class_groups = group_ids[class_indices]
+        class_blocks = block_ids[class_indices]
+        unique_blocks = np.unique(class_blocks)
+        rng.shuffle(unique_blocks)
 
-        unique_groups = np.unique(class_groups)
-        rng.shuffle(unique_groups)
-
-        target_val_count = round(len(class_indices) * test_size)
-        val_group_ids = set()
+        target_val_count = len(class_indices) * test_size
         running_count = 0
-        for group in unique_groups:
-            if running_count >= target_val_count:
-                break
-            val_group_ids.add(group)
-            running_count += int(np.sum(class_groups == group))
+        for block in unique_blocks:
+            size = int(np.sum(class_blocks == block))
+            if abs(running_count + size - target_val_count) < abs(running_count - target_val_count):
+                is_val[class_indices[class_blocks == block]] = True
+                running_count += size
 
-        is_val = np.isin(class_groups, list(val_group_ids))
-        val_idx.extend(class_indices[is_val].tolist())
-        train_idx.extend(class_indices[~is_val].tolist())
+    val_timestamps = np.sort(timestamps[is_val])
+    train_candidates = np.where(~is_val)[0]
+    candidate_ts = timestamps[train_candidates]
+    pos = np.searchsorted(val_timestamps, candidate_ts)
+    nearest_left = np.abs(candidate_ts - val_timestamps[np.clip(pos - 1, 0, len(val_timestamps) - 1)])
+    nearest_right = np.abs(val_timestamps[np.clip(pos, 0, len(val_timestamps) - 1)] - candidate_ts)
+    overlaps_val = np.minimum(nearest_left, nearest_right) < WINDOW_MS
 
-    return np.array(sorted(train_idx)), np.array(sorted(val_idx))
+    train_idx = np.sort(train_candidates[~overlaps_val])
+    val_idx = np.sort(np.where(is_val)[0])
+    if return_dropped:
+        return train_idx, val_idx, np.sort(train_candidates[overlaps_val])
+    return train_idx, val_idx

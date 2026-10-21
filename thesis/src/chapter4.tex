@@ -1,4 +1,4 @@
-% Chapter 4 -- Model Design and Training
+% Chapter 4 -- Model Design, Training and Deployment
 % Figures are authored in TikZ so the chapter compiles without external assets.
 % Placeholders [CITATION: ...] mark references still to be added.
 
@@ -17,10 +17,9 @@ experimental design and its relation to the research questions. It then covers
 the input representations derived from the inertial and acoustic windows of
 Chapter~\ref{ch:data}, the single-modality models, the three fusion strategies,
 and a classical baseline using hand-crafted features. It closes with the training
-procedure and the evaluation protocol that all models share. The results obtained
-with these models are presented in Chapter~\ref{ch:results}, and the conversion
-of selected models for execution on the wearable device is covered in
-Chapter~\ref{ch:implementation}.
+procedure, the deployment of selected models on the wearable device and the
+evaluation protocol that all models share. The results obtained with these models
+are presented in Chapter~\ref{ch:results}.
 
 \section{Overview of the Experimental Design}
 \label{sec:design}
@@ -49,8 +48,8 @@ questions formulated in Chapter~1:
   data instead of defining them in advance (RQ3).
   \item \textbf{Reduced model variants} with fewer parameters were designed with
   the memory and computational limits of the target device in mind. They connect
-  the offline comparison to the deployment study in
-  Chapter~\ref{ch:implementation} (RQ4).
+  the offline comparison to the deployment on the device described in
+  Section~\ref{sec:deployment} (RQ4).
 \end{itemize}
 
 \begin{table}[htbp]
@@ -123,7 +122,7 @@ ranges. Each channel is therefore standardised to zero mean and unit variance.
 The mean and standard deviation of each channel are computed on the training
 split only and then applied unchanged to the validation data, so that no
 statistics of the validation set enter the training process. As described in
-Chapter~\ref{ch:implementation}, the same statistics are later embedded in the
+Section~\ref{sec:deployment}, the same statistics are later embedded in the
 device firmware and applied to the live sensor data.
 
 \subsection{Audio Log-Mel Spectrograms}
@@ -291,8 +290,8 @@ The pooling variants are compared on the standalone audio model. Within the
 fusion models, the acoustic component uses the GAP variant. With 23\,945
 parameters it is about six times smaller than the recurrent variants, and it
 avoids recurrent layers, whose sequential computation is costly on the target
-microcontroller. This keeps all fusion models within reach of the deployment study
-in Chapter~\ref{ch:implementation}. The performance of the three variants is
+microcontroller. This keeps all fusion models within reach of the deployment
+described in Section~\ref{sec:deployment}. The performance of the three variants is
 reported in Chapter~\ref{ch:results}. Table~\ref{tab:single-arch} summarises both
 single-modality architectures.
 
@@ -603,7 +602,7 @@ microcontroller, however, inference time and memory usage are strict limits.
 The TensorFlow Lite Micro build for this platform executes convolutions with
 unaccelerated reference kernels, so their cost grows directly with the number of
 filters and with the size of the feature maps. This is explained in more detail in
-Chapter~\ref{ch:implementation}. Reduced variants were therefore created that
+Section~\ref{sec:platform-sw}. Reduced variants were therefore created that
 keep the overall architecture but use fewer filters.
 
 \begin{itemize}
@@ -736,6 +735,257 @@ data, the procedure introduces a slight optimistic bias into the reported result
 a point taken up in the discussion of limitations in
 Chapter~\ref{ch:discussion}.
 
+\section{Deployment on the Wearable Device}
+\label{sec:deployment}
+
+The models described so far were trained and evaluated on a desktop computer. To
+answer RQ4, selected models were also brought onto the M5StickC Plus2, the same
+device that recorded the training data. Two conditions must hold for this to
+succeed. The model has to fit into the memory of the microcontroller and run fast
+enough for continuous use. In addition, the device has to transform the live
+sensor signals in exactly the same way as the training pipeline did, because even
+a correct model produces wrong predictions if its input differs from what it saw
+during training. This section describes how both conditions were addressed. The
+measured memory use, inference time and on-device accuracy are reported in
+Chapter~\ref{ch:results}.
+
+\subsection{Target Platform and Software Stack}
+\label{sec:platform-sw}
+
+As described in Section~\ref{sec:platform}, the device is built around the
+ESP32-PICO-V3-02, a dual-core processor clocked at up to 240\,MHz with 520\,KB of
+on-chip SRAM. Only part of this memory is available to the application, because
+the Arduino framework and the device libraries reserve their own share. The
+firmware was developed with PlatformIO and the Arduino framework. Neural network
+inference uses TensorFlow Lite for Microcontrollers {[}CITATION{]}, a version of
+TensorFlow Lite designed for devices without an operating system and without
+dynamic memory allocation. The FFT for the audio features is computed with the
+arduinoFFT library {[}CITATION{]}.
+
+The TensorFlow Lite Micro port available for this platform does not include the
+optimised neural network kernels that the chip manufacturer provides for newer
+processors. All layers are therefore executed with the generic reference
+implementations. This is the reason why the inference time grows directly with
+the number of filters and the size of the feature maps, and why the reduced model
+variants described in Section~\ref{sec:small-models} were developed.
+
+Three firmware variants were implemented, one for each fusion strategy. They share
+the same capture and preprocessing code but differ in the number of networks they
+run, as summarised in Table~\ref{tab:firmware-variants}. Each variant is a separate
+PlatformIO build environment, so that the data-collection firmware of
+Chapter~\ref{ch:data} and the three inference variants can be flashed
+independently of each other.
+
+% Arena sizes reflect the current firmware and are to be confirmed after the
+% re-export of the final models.
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{2.2cm}|}
+\hline
+\textbf{Variant} & \textbf{Networks on the device} & \textbf{Network inputs} & \textbf{Tensor arena} \\
+\hline
+Early fusion (small) & one fused network & $200 \times 46$ & 40\,KB \\
+Embedding-level fusion (small) & IMU backbone, audio backbone and fusion head & $200 \times 6$, $198 \times 40$ and 128 & 20, 20 and 3\,KB \\
+Decision-level fusion (small) & IMU backbone and audio backbone & $200 \times 6$ and $198 \times 40$ & 20 and 20\,KB \\
+\hline
+\end{tabularx}
+\caption{Firmware variants for on-device inference. The tensor arena is the fixed
+memory block that holds the intermediate results of a network.}
+\label{tab:firmware-variants}
+\end{table}
+
+\subsection{Model Conversion and Integer Quantization}
+\label{sec:quantization}
+
+The trained Keras models store their weights as 32-bit floating-point numbers. For
+the microcontroller they are converted into the TensorFlow Lite format and
+quantized to 8-bit integers {[}CITATION{]}. In this form, each value is
+represented by an integer $q$ between $-128$ and $127$, and the original real
+value $r$ is recovered as
+\begin{equation}
+  r = s \cdot (q - z),
+  \label{eq:quantization}
+\end{equation}
+where the scale $s$ and the zero point $z$ are fixed for each tensor. Quantization
+reduces the size of the weights by a factor of four. It also allows all
+computations to be carried out in integer arithmetic, which is the form best
+supported by TensorFlow Lite Micro on microcontrollers.
+
+Full integer quantization was used, so that not only the weights but also the
+intermediate results and the input and output of each network are 8-bit integers.
+To choose suitable scales for the intermediate results, the converter needs to
+know which value ranges occur in practice. It therefore receives a representative
+dataset of 200 standardised windows from the training split, which it passes
+through the network to record the range of every intermediate tensor. The
+validation data are not used in this step.
+
+The conversion is carried out by an export script. Besides the converted model,
+it writes all values that the firmware needs to reproduce the preprocessing into
+C header files, which are listed in Table~\ref{tab:firmware-contents}. The
+firmware is then compiled together with these files. Because all constants are
+produced automatically from the same objects that were used during training,
+errors caused by copying values by hand are ruled out.
+Figure~\ref{fig:export-pipeline} shows this process.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=4mm and 8mm, every node/.style={blk}]
+  \node[text width=3.4cm] (keras) {Trained Keras model\\(32-bit floating point)};
+  \node[text width=3.4cm, right=of keras] (stats) {Training statistics,\\mel filter bank,\\fusion weights};
+  \node[text width=3.4cm, right=of stats] (val) {Labelled validation\\windows};
+  \node[text width=3.4cm, below=8mm of keras] (conv) {TFLite converter\\int8, representative\\training windows};
+  \node[text width=11.2cm, below=8mm of conv.south west, anchor=north west] (hdr) {C header files: model weights, quantization parameters, preprocessing constants, self-test windows};
+  \node[text width=11.2cm, below=of hdr] (build) {PlatformIO build $\rightarrow$ firmware flashed to the M5StickC Plus2};
+  \draw[flow] (keras) -- (conv);
+  \draw[flow] (conv) -- (conv |- hdr.north);
+  \draw[flow] (stats) -- (stats |- hdr.north);
+  \draw[flow] (val) -- (val |- hdr.north);
+  \draw[flow] (hdr) -- (build);
+\end{tikzpicture}
+\caption{Export of a trained model to the device firmware. All constants used on
+the device are generated automatically from the training pipeline.}
+\label{fig:export-pipeline}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|p{4.6cm}|p{3.6cm}|X|}
+\hline
+\textbf{Content} & \textbf{Source} & \textbf{Purpose} \\
+\hline
+Mean and standard deviation of each input channel & training split & standardisation of the live input \\
+Scale and zero point of input and output & TFLite converter & quantization of the input, conversion of the output back to real values \\
+Mel filter bank ($257 \times 40$) & TensorFlow, as in training & computation of the log-mel spectrogram \\
+Hann window (400 values) & TensorFlow, as in training & weighting of each STFT frame \\
+Class names and fusion weights & training & output and decision-level fusion \\
+One labelled window per class & validation split & self-test at start-up \\
+\hline
+\end{tabularx}
+\caption{Values embedded in the firmware in addition to the model weights.}
+\label{tab:firmware-contents}
+\end{table}
+
+\subsection{On-Device Signal Processing}
+\label{sec:device-preprocessing}
+
+The preprocessing described in Chapter~\ref{ch:data} and
+Section~\ref{sec:inputs} was originally implemented in Python and applied offline
+to complete recordings. On the device, the same steps have to be carried out on a
+single two-second window, in real time and with little memory.
+
+\textbf{Inertial data.} During data collection, the IMU delivered about 250
+samples per second, which were reduced to 80\,Hz by averaging consecutive samples,
+as described in Section~\ref{sec:decimation}. The firmware repeats this step. It
+collects all IMU samples that arrive during the two-second window and averages
+them in 160 consecutive groups, which corresponds to the 160 samples of a training
+window. The result is then resampled to 200 time steps by linear interpolation,
+standardised with the stored training statistics and quantized with the input
+scale of the network. To save memory, the last three steps are combined into a
+single pass that writes the result directly into the input tensor of the network.
+
+\textbf{Audio data.} A two-second audio window consists of 32\,000 samples. Stored
+as 16-bit integers, it would occupy 64\,KB, which would not fit into memory
+together with the networks. The log-mel spectrogram is therefore computed while
+the audio is being recorded. The firmware reads the microphone in chunks of 160
+samples, which corresponds to the 10\,ms hop of the STFT, and keeps only the most
+recent 400 samples, which form the current frame. For each new frame, it
+multiplies the samples by the Hann window, computes the FFT with a length of 512,
+applies the mel filter bank and takes the logarithm. Only the resulting
+$198 \times 40$ mel values are kept. The samples are scaled to the range from $-1$
+to $1$ beforehand, as in the training pipeline. For the early fusion model, the
+spectrogram is then resampled to 200 frames and written into the audio channels
+of the fused input. The decision-level and embedding-level variants pass the
+$198 \times 40$ spectrogram to the audio network unchanged.
+
+Two details of the training pipeline are easy to overlook and were reproduced
+explicitly. First, the STFT in TensorFlow applies a Hann window to each frame by
+default, even though the training code does not request it. Second, the mel
+filter bank of TensorFlow differs slightly from those of other libraries. As
+listed in Table~\ref{tab:firmware-contents}, both the window and the filter bank
+are therefore taken directly from TensorFlow and embedded as tables instead of
+being recomputed on the device.
+
+\subsection{Firmware Structure and Inference Loop}
+\label{sec:firmware-loop}
+
+After start-up, the firmware initialises the display, the microphone and the
+networks and runs the self-test described in Section~\ref{sec:device-verification}.
+It then enters a loop, shown in Figure~\ref{fig:inference-loop}, that repeats the
+following steps.
+
+\begin{enumerate}
+  \item A two-second window is recorded. The IMU is read between successive audio
+  chunks, so that both modalities cover the same period of time, as in the
+  synchronised training data.
+  \item The inertial and acoustic inputs are prepared as described in
+  Section~\ref{sec:device-preprocessing}.
+  \item The network or networks are executed.
+  \item For decision-level fusion, the output probabilities of both networks are
+  converted back to real values with Equation~\ref{eq:quantization} and combined
+  with the per-class weights of Equation~\ref{eq:perclass-fusion}. For
+  embedding-level fusion, the two embeddings are passed to the fusion head.
+  \item The predicted class and its confidence are shown on the display and sent
+  over the serial port, together with the time required by each step.
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=5mm, every node/.style={blk, text width=11cm}]
+  \node (init) {Start-up: initialise display, microphone and networks, run self-test};
+  \node[below=7mm of init] (rec) {Record 2\,s window (audio in 10\,ms chunks, IMU read in between)};
+  \node[below=of rec] (prep) {IMU: averaging to 160 samples, resampling to 200, standardisation\\Audio: log-mel spectrogram computed frame by frame during recording};
+  \node[below=of prep] (inf) {int8 inference of one, two or three networks};
+  \node[below=of inf] (fuse) {Fusion of the outputs (decision-level or embedding-level variant)};
+  \node[below=of fuse] (out) {Prediction and timing on display and serial port};
+  \draw[flow] (init) -- (rec);
+  \foreach \a/\b in {rec/prep, prep/inf, inf/fuse, fuse/out} \draw[flow] (\a) -- (\b);
+  \draw[flow] (out.east) -- ++(6mm,0) |- (rec.east);
+\end{tikzpicture}
+\caption{Structure of the inference firmware. After the start-up phase, recording,
+preprocessing, inference and output are repeated continuously.}
+\label{fig:inference-loop}
+\end{figure}
+
+Recording and inference take place one after the other. While a window is being
+processed, no new data are recorded, so consecutive windows do not overlap as they
+do in the training data. A new prediction is therefore available every two seconds
+plus the processing time.
+
+All memory is reserved statically when the firmware is compiled. TensorFlow Lite
+Micro places all intermediate tensors of a network in a fixed memory block, the
+tensor arena, whose size has to be chosen in advance. The sizes in
+Table~\ref{tab:firmware-variants} were chosen so that all buffers fit into the
+available memory together, and the firmware reports at start-up how much of each
+arena is actually used. The network weights are not part of the arena, because
+they remain in flash memory and are read from there during inference. In
+addition, each network registers only the nine operations it actually uses
+instead of all available operations, which keeps the program smaller.
+
+\subsection{Verification of the Deployment Pipeline}
+\label{sec:device-verification}
+
+When the device produces a wrong prediction, the cause can lie in two places.
+Either the network itself does not run correctly on the device, or the input it
+receives differs from the training data. To separate these two cases, each
+firmware runs a self-test at start-up. It uses one labelled window per class from
+the validation split. These windows were standardised and quantized in Python
+with the same constants as on the device and are embedded in the firmware. They
+are written directly into the input tensor, bypassing the sensors and the
+on-device preprocessing, and the device reports how many of them are classified
+correctly. If the self-test succeeds but live predictions are poor, the error must
+lie in the capture or in the preprocessing.
+
+For the live pipeline, the firmware also prints diagnostic values in every cycle.
+These include the number of captured IMU samples, the mean acceleration along the
+three axes and the range of the raw audio samples. The mean acceleration shows how
+the device is oriented relative to gravity and can be compared with the training
+data. This makes it possible to detect problems such as a different wearing
+orientation, whose effect is examined in Chapter~\ref{ch:results}.
+
 \section{Evaluation Protocol}
 \label{sec:evaluation}
 
@@ -843,6 +1093,18 @@ for one another. Unless stated otherwise, all results are reported on the
 validation set of the grouped split and come from a single training run per
 model.
 
+\subsection{On-Device Measurements}
+\label{sec:device-measurements}
+
+The deployed models are evaluated in three ways. First, the accuracy of the
+quantized models is measured in Python on the full validation set and compared
+with that of the original floating-point models, which isolates the effect of
+quantization. Second, the firmware reports the size of each model, the used part
+of each tensor arena and the time needed for capture, preprocessing and inference,
+measured with the system timer of the microcontroller. Third, the self-test and
+live tests with the device worn on the wrist show whether the complete pipeline
+works under real conditions.
+
 \section{Chapter Summary}
 \label{sec:ch4-summary}
 
@@ -857,6 +1119,8 @@ the two modalities across activities. A random forest on hand-crafted features
 serves as a classical baseline, and reduced, regularised variants prepare the
 deployment on the device. All models share the same input normalisation, class
 weighting, training settings, best-epoch selection and grouped train/validation
-split. Chapter~\ref{ch:implementation} describes how selected models were
-converted for execution on the wearable device, and Chapter~\ref{ch:results}
-presents the results.
+split. Selected small models are converted to 8-bit integer arithmetic and
+executed on the wearable device by firmware that reproduces the complete
+preprocessing of the training pipeline and checks its own correctness with
+embedded validation windows. Chapter~\ref{ch:results} presents the results of
+both the offline and the on-device evaluation.

@@ -15,6 +15,7 @@ load_imu_window = backbones_pipeline.load_imu_window
 load_audio_waveform = backbones_pipeline.load_audio_waveform
 weighted_fusion_probs = decision_pipeline.weighted_fusion_probs
 search_best_imu_weight = decision_pipeline.search_best_imu_weight
+search_per_class_weights = decision_pipeline.search_per_class_weights
 
 EXPORT_DIR = backbones_pipeline.EXPORT_DIR
 
@@ -65,14 +66,30 @@ def main():
         f"(IMU weight={best_weight:.2f})"
     )
 
-    fused_val_pred = np.argmax(weighted_fusion_probs(imu_val_probs, audio_val_probs, best_weight), axis=1)
-    print("\nClassification report:")
-    print(classification_report(y_val_int, fused_val_pred, target_names=classes))
-    print("Confusion matrix:")
-    print(confusion_matrix(y_val_int, fused_val_pred))
+    # Refine the global weight into one weight per class (coordinate ascent starting from
+    # best_weight). This is what the deployed decision-fusion firmware applies.
+    per_class_weight, per_class_accuracy = search_per_class_weights(
+        imu_val_probs, audio_val_probs, y_val_int, len(classes), best_weight
+    )
+    print(f"Decision-level fused (small, per-class) Validation Accuracy: {per_class_accuracy * 100:.1f}%")
+    print("\nPer-class IMU weight:")
+    for name, w in zip(classes, per_class_weight):
+        print(f"  {name}: {w:.2f}")
 
-    np.savez(EXPORT_DIR / "decision_fusion_small_export_data.npz", best_imu_weight=best_weight)
-    print(f"\nSaved decision fusion weight to {EXPORT_DIR}")
+    for title, weight in (("global weight", best_weight), ("per-class weights", per_class_weight)):
+        fused_val_pred = np.argmax(weighted_fusion_probs(imu_val_probs, audio_val_probs, weight), axis=1)
+        print(f"\n--- Decision-level fused (small, {title}) ---")
+        print("Classification report:")
+        print(classification_report(y_val_int, fused_val_pred, target_names=classes))
+        print("Confusion matrix:")
+        print(confusion_matrix(y_val_int, fused_val_pred))
+
+    np.savez(
+        EXPORT_DIR / "decision_fusion_small_export_data.npz",
+        best_imu_weight=best_weight,
+        per_class_imu_weight=per_class_weight,
+    )
+    print(f"\nSaved decision fusion weights to {EXPORT_DIR}")
 
 
 if __name__ == "__main__":

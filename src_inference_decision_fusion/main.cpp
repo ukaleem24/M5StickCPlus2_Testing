@@ -109,14 +109,17 @@ void runAudioClassifier(float *probsOut) {
   }
 }
 
-// Weighted-sum decision rule: fused = w*imu_probs + (1-w)*audio_probs, matching
-// weighted_fusion_probs in train_decision_fusion_cnn.py, with BEST_IMU_WEIGHT the same
-// grid-searched constant train_decision_fusion_small.py found on the shared backbones.
+// Per-class weighted-sum decision rule: fused[c] = w[c]*imu_probs[c] + (1-w[c])*audio_probs[c],
+// matching weighted_fusion_probs in train_decision_fusion_cnn.py with the per-class weight
+// vector train_decision_fusion_small.py found by coordinate ascent. With per-class weights
+// the fused scores no longer sum to 1, so the reported "confidence" is the winning class's
+// fused score, not a calibrated probability.
 int argmaxWeightedFusion(const float *imuProbs, const float *audioProbs, float *confidenceOut) {
   int bestClassIndex = 0;
   float bestProbability = -1.0f;
   for (int classIndex = 0; classIndex < NUM_CLASSES; classIndex++) {
-    float probability = BEST_IMU_WEIGHT * imuProbs[classIndex] + (1.0f - BEST_IMU_WEIGHT) * audioProbs[classIndex];
+    float imuWeight = PER_CLASS_IMU_WEIGHT[classIndex];
+    float probability = imuWeight * imuProbs[classIndex] + (1.0f - imuWeight) * audioProbs[classIndex];
     if (probability > bestProbability) {
       bestProbability = probability;
       bestClassIndex = classIndex;

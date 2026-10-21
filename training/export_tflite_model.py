@@ -79,6 +79,45 @@ def get_io_quantization(tflite_model: bytes) -> dict:
     }
 
 
+def tflite_predict(tflite_model: bytes, x_normalized: np.ndarray) -> np.ndarray:
+    """Runs an int8 TFLite model over already-normalized float inputs, one window at a
+    time, quantizing the input and dequantizing the output exactly like the firmware does
+    (round, clip to int8, then (q - zero_point) * scale on the way out). Returns the
+    dequantized outputs, so the result is directly comparable to Keras' predict()."""
+    interpreter = tf.lite.Interpreter(model_content=tflite_model)
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()[0]
+    output_details = interpreter.get_output_details()[0]
+    input_scale, input_zero_point = input_details["quantization"]
+    output_scale, output_zero_point = output_details["quantization"]
+
+    outputs = []
+    for sample in x_normalized:
+        quantized = np.round(sample / input_scale + input_zero_point)
+        quantized = np.clip(quantized, -128, 127).astype(np.int8)
+        interpreter.set_tensor(input_details["index"], quantized[np.newaxis, ...])
+        interpreter.invoke()
+        raw = interpreter.get_tensor(output_details["index"])[0].astype(np.float32)
+        outputs.append((raw - output_zero_point) * output_scale)
+    return np.stack(outputs)
+
+
+def write_quantization_report(path: Path, rows: dict, num_val_windows: int):
+    """rows: {name: (float_accuracy, int8_accuracy)}. Prints the comparison and saves it
+    as JSON next to the exported models, so the float-vs-int8 numbers reported in the
+    thesis come from the exact files that are flashed."""
+    import json
+
+    print(f"\n=== Float vs. int8 accuracy on the full validation split ({num_val_windows} windows) ===")
+    report = {"num_val_windows": int(num_val_windows), "models": {}}
+    for name, (float_acc, int8_acc) in rows.items():
+        print(f"{name:40s} float {float_acc * 100:5.1f}%   int8 {int8_acc * 100:5.1f}%   "
+              f"diff {(int8_acc - float_acc) * 100:+.1f} pp")
+        report["models"][name] = {"float_accuracy": float(float_acc), "int8_accuracy": float(int8_acc)}
+    path.write_text(json.dumps(report, indent=2))
+    print(f"Saved quantization report to {path}")
+
+
 def compute_mel_filterbank() -> np.ndarray:
     # Fixed, data-independent matrix -- precomputing it here and embedding it means the
     # firmware only needs an FFT + matmul, guaranteeing exact parity with the mel
@@ -202,13 +241,9 @@ constexpr int OUTPUT_ZERO_POINT = {quantization["output_zero_point"]};
     output_path.write_text(content)
 
 
-def build_self_test_vectors(channel_mean, channel_std, quantization, classes, samples_per_class=1):
-    """Re-derives the same val split train_early_fusion_concat_cnn.py used, and quantizes
-    a handful of real labeled windows exactly as the device pipeline would. These get
-    embedded in the firmware so it can run inference on known-good, known-label input at
-    boot -- if the device gets these right but live capture still doesn't work, the bug is
-    in the capture/feature pipeline, not the TFLite Micro runtime itself. That's the one
-    thing this export script can't verify from the Python side."""
+def load_validation_windows(classes):
+    """Re-derives the same grouped val split the training script used and returns the
+    raw (unnormalized) fused windows, their integer labels and the val indices."""
     imu_paths, audio_paths, labels = fusion_model_pipeline.discover_paired_windows(
         imu_pipeline.DATA_ROOT, audio_pipeline.DATA_ROOT
     )
@@ -226,7 +261,17 @@ def build_self_test_vectors(channel_mean, channel_std, quantization, classes, sa
 
     timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
     _, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
+    return x_fused, y_encoded, val_idx
 
+
+def build_self_test_vectors(x_fused, y_encoded, val_idx, channel_mean, channel_std, quantization, classes,
+                            samples_per_class=1):
+    """Picks one real, labeled validation window per class and quantizes it exactly as
+    the device pipeline would. These get embedded in the firmware so it can run inference
+    on known-good, known-label input at boot -- if the device gets these right but live
+    capture still doesn't work, the bug is in the capture/feature pipeline, not the TFLite
+    Micro runtime itself. That's the one thing this export script can't verify from the
+    Python side."""
     chosen_indices = []
     seen_classes = set()
     for idx in val_idx:
@@ -338,8 +383,20 @@ def main():
     )
     print(f"Wrote {FIRMWARE_DIR / 'model_data.h'} and {FIRMWARE_DIR / 'model_settings.h'}")
 
+    x_fused, y_encoded, val_idx = load_validation_windows(classes)
+    x_val = (x_fused[val_idx] - channel_mean) / channel_std
+    y_val = y_encoded[val_idx]
+    float_accuracy = float(np.mean(np.argmax(model.predict(x_val, verbose=0), axis=1) == y_val))
+    int8_accuracy = float(np.mean(np.argmax(tflite_predict(tflite_model, x_val), axis=1) == y_val))
+    write_quantization_report(
+        EXPORT_DIR / f"{args.model}_quantization_report.json",
+        {args.model: (float_accuracy, int8_accuracy)},
+        len(val_idx),
+    )
+
     print("Building self-test vectors from real labeled validation windows...")
-    test_vectors = build_self_test_vectors(channel_mean, channel_std, quantization, classes)
+    test_vectors = build_self_test_vectors(x_fused, y_encoded, val_idx, channel_mean, channel_std, quantization,
+                                           classes)
     write_test_vectors_header(FIRMWARE_DIR / "test_vectors.h", test_vectors)
     print(f"Wrote {FIRMWARE_DIR / 'test_vectors.h'} ({len(test_vectors)} vectors)")
 

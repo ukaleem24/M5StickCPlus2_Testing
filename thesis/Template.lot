@@ -15,8 +15,9 @@
 \contentsline {table}{\numberline {4.5}{\ignorespaces Hand-crafted features of the classical baseline.}}{38}{table.4.5}%
 \contentsline {table}{\numberline {4.6}{\ignorespaces Standard and deployment-oriented (small) model variants. Parameter counts refer to the nine-class output layer.}}{39}{table.4.6}%
 \contentsline {table}{\numberline {4.7}{\ignorespaces Training settings shared by all neural network models.}}{40}{table.4.7}%
-\contentsline {table}{\numberline {4.8}{\ignorespaces Training and validation windows per class after the grouped split.}}{42}{table.4.8}%
-\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.8}{\ignorespaces Firmware variants for on-device inference. The tensor arena is the fixed memory block that holds the intermediate results of a network.}}{41}{table.4.8}%
+\contentsline {table}{\numberline {4.9}{\ignorespaces Values embedded in the firmware in addition to the model weights.}}{43}{table.4.9}%
+\contentsline {table}{\numberline {4.10}{\ignorespaces Training and validation windows per class after the grouped split.}}{47}{table.4.10}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

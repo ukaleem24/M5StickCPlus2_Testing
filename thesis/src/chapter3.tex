@@ -50,7 +50,7 @@ several body locations simultaneously. The second is the limited on-chip memory:
 the manufacturer datasheet gives 8\,MB of flash, 2\,MB of in-package PSRAM, and
 520\,KB of on-chip SRAM. This budget is comfortable for buffering and forwarding sensor samples during
 acquisition, but it is the binding constraint on the eventual on-device inference
-stage treated in Chapter~\ref{ch:implementation}. The dataset was therefore
+stage treated in Section~\ref{sec:deployment}. The dataset was therefore
 designed so that the same device that records the training data can, in
 principle, run the trained model: the inertial and acoustic sampling rates, the
 window length, and the feature representations described later in this chapter

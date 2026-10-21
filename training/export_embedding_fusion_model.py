@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from data_split import grouped_train_val_split, parse_window_timestamp
 
+import export_decision_fusion_model as decision_export_pipeline
 import export_tflite_model as export_utils
 import train_fusion_backbones_small as backbones_pipeline
 
@@ -33,47 +34,10 @@ AUDIO_RAW_FRAMES = (audio_pipeline.TARGET_SAMPLES - audio_pipeline.FRAME_LENGTH)
 EMBEDDING_DIM = 64
 
 
-def build_self_test_vectors(imu_quant, audio_quant, imu_channel_mean, imu_channel_std, audio_bin_mean,
-                             audio_bin_std, classes, samples_per_class=1):
-    """Real, labeled validation windows quantized separately for the IMU and audio
-    embedders. Firmware chains embedder -> embedder -> fusion head on these at boot,
-    exercising the full multi-model pipeline (including the dequantize/requantize hop
-    between the embedders and the fusion head) before live capture ever runs."""
-    imu_paths, audio_paths, labels = discover_paired_windows(imu_pipeline.DATA_ROOT, audio_pipeline.DATA_ROOT)
-    x_imu = np.stack([load_imu_window(p) for p in imu_paths])
-    x_audio_waveforms = np.stack([load_audio_waveform(p) for p in audio_paths])
-    x_audio = audio_pipeline.compute_log_mel_spectrograms(x_audio_waveforms)  # (N, 198, 40, 1) native
-
-    label_encoder = LabelEncoder()
-    label_encoder.classes_ = np.asarray(classes)
-    y_encoded = label_encoder.transform(labels)
-
-    timestamps = np.array([parse_window_timestamp(p) for p in imu_paths])
-    _, val_idx = grouped_train_val_split(labels, timestamps, test_size=0.2, random_state=42)
-
-    chosen_indices = []
-    seen_classes = set()
-    for idx in val_idx:
-        class_index = int(y_encoded[idx])
-        if class_index in seen_classes:
-            continue
-        seen_classes.add(class_index)
-        chosen_indices.append(idx)
-        if len(seen_classes) >= len(classes) * samples_per_class:
-            break
-
-    vectors = []
-    for idx in chosen_indices:
-        imu_normalized = (x_imu[idx] - imu_channel_mean) / imu_channel_std
-        imu_q = np.round(imu_normalized / imu_quant["input_scale"] + imu_quant["input_zero_point"])
-        imu_q = np.clip(imu_q, -128, 127).astype(np.int8)
-
-        audio_normalized = (x_audio[idx] - audio_bin_mean) / audio_bin_std
-        audio_q = np.round(audio_normalized / audio_quant["input_scale"] + audio_quant["input_zero_point"])
-        audio_q = np.clip(audio_q, -128, 127).astype(np.int8)
-
-        vectors.append((imu_q, audio_q, int(y_encoded[idx])))
-    return vectors
+# The embedding-fusion firmware deploys the same two small backbones as decision fusion
+# (as embedders), so the validation loading and self-test window selection are shared.
+load_paired_validation_windows = decision_export_pipeline.load_paired_validation_windows
+build_self_test_vectors = decision_export_pipeline.build_self_test_vectors
 
 
 def write_test_vectors_header(output_path: Path, vectors):
@@ -257,9 +221,36 @@ def main():
     )
     print(f"Wrote headers to {FIRMWARE_DIR}")
 
+    x_imu, x_audio, y_encoded, val_idx = load_paired_validation_windows(classes)
+    x_imu_val = (x_imu[val_idx] - imu_channel_mean) / imu_channel_std
+    x_audio_val = (x_audio[val_idx] - audio_bin_mean) / audio_bin_std
+    y_val = y_encoded[val_idx]
+
+    fused_float = np.concatenate(
+        [imu_embedder.predict(x_imu_val, verbose=0), audio_embedder.predict(x_audio_val, verbose=0)], axis=1
+    )
+    probs_float = fusion_model.predict(fused_float, verbose=0)
+    # Same chain as the firmware: each embedder's int8 output is dequantized with its own
+    # scale, concatenated, and requantized with the fusion head's input scale.
+    fused_int8 = np.concatenate(
+        [export_utils.tflite_predict(imu_tflite, x_imu_val), export_utils.tflite_predict(audio_tflite, x_audio_val)],
+        axis=1,
+    )
+    probs_int8 = export_utils.tflite_predict(fusion_tflite, fused_int8)
+
+    def accuracy(probs):
+        return float(np.mean(np.argmax(probs, axis=1) == y_val))
+
+    export_utils.write_quantization_report(
+        EXPORT_DIR / "embedding_fusion_small_quantization_report.json",
+        {"embedding_fusion_small": (accuracy(probs_float), accuracy(probs_int8))},
+        len(val_idx),
+    )
+
     print("Building self-test vectors...")
     vectors = build_self_test_vectors(
-        imu_quant, audio_quant, imu_channel_mean, imu_channel_std, audio_bin_mean, audio_bin_std, classes
+        x_imu, x_audio, y_encoded, val_idx, imu_quant, audio_quant, imu_channel_mean, imu_channel_std,
+        audio_bin_mean, audio_bin_std, classes,
     )
     write_test_vectors_header(FIRMWARE_DIR / "test_vectors.h", vectors)
     print(f"Wrote test_vectors.h ({len(vectors)} vectors)")

@@ -2,11 +2,10 @@
 #pragma once
 
 // --- Class labels (index order matches the fusion head's output tensor) ---
-constexpr int NUM_CLASSES = 10;
+constexpr int NUM_CLASSES = 9;
 const char *const CLASS_NAMES[NUM_CLASSES] = {
     "assemble_parts",
     "carry_container",
-    "compartment_interaction",
     "hammering",
     "idle",
     "insert_screws",
@@ -36,49 +35,49 @@ constexpr int EMBEDDING_DIM = 64;
 constexpr int FUSED_EMBEDDING_DIM = EMBEDDING_DIM * 2;
 
 // --- IMU embedder quantization (input: raw window; output: 64-d embedding) ---
-constexpr float IMU_INPUT_SCALE = 0.1010333076f;
-constexpr int IMU_INPUT_ZERO_POINT = -6;
-constexpr float IMU_OUTPUT_SCALE = 0.02648443915f;
+constexpr float IMU_INPUT_SCALE = 0.08641244471f;
+constexpr int IMU_INPUT_ZERO_POINT = -17;
+constexpr float IMU_OUTPUT_SCALE = 0.01233413909f;
 constexpr int IMU_OUTPUT_ZERO_POINT = -128;
 
 // --- Audio embedder quantization (input: raw spectrogram; output: 64-d embedding) ---
-constexpr float AUDIO_INPUT_SCALE = 0.0546450913f;
-constexpr int AUDIO_INPUT_ZERO_POINT = 39;
-constexpr float AUDIO_OUTPUT_SCALE = 0.01778242551f;
+constexpr float AUDIO_INPUT_SCALE = 0.04235527292f;
+constexpr int AUDIO_INPUT_ZERO_POINT = 34;
+constexpr float AUDIO_OUTPUT_SCALE = 0.005055119283f;
 constexpr int AUDIO_OUTPUT_ZERO_POINT = -128;
 
 // --- Fusion head quantization (input: concatenated 128-d embedding; output: class scores).
 // Firmware must dequantize both embedder outputs with their OWN output scale/zero_point,
 // concatenate as float, then requantize with THESE before feeding the fusion head -- the
 // three models were quantized independently, so there's no shared scale to reuse. ---
-constexpr float FUSION_INPUT_SCALE = 0.02648444101f;
+constexpr float FUSION_INPUT_SCALE = 0.01233413536f;
 constexpr int FUSION_INPUT_ZERO_POINT = -128;
 constexpr float FUSION_OUTPUT_SCALE = 0.00390625f;
 constexpr int FUSION_OUTPUT_ZERO_POINT = -128;
 
 // --- IMU per-channel normalization stats from the training split (['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']) ---
 const float IMU_CHANNEL_MEAN[6] = {
-    -0.5476768f, -0.47238135f, 0.50132871f, 6.3481827f, 24.841984f, 12.678066f,
+    -0.57140988f, -0.54928941f, 0.34323585f, 6.4792976f, 16.525478f, 5.1056561f,
 };
 
 const float IMU_CHANNEL_STD[6] = {
-    0.32949635f, 0.31343552f, 0.30977172f, 34.871349f, 47.920624f, 36.00243f,
+    0.31154099f, 0.36545783f, 0.33113861f, 34.995327f, 52.353065f, 42.576847f,
 };
 
 
 // --- Audio per-mel-bin normalization stats from the training split ---
 const float AUDIO_BIN_MEAN[40] = {
-    -1.4705263f, -1.754511f, -1.853949f, -1.7732244f, -1.8241184f, -2.0861902f, -2.2247717f, -2.2563152f, -2.2705204f, -2.2073131f, -2.2316258f, -2.1806357f,
-    -2.2256968f, -2.2574806f, -2.1701579f, -2.1131179f, -2.0809586f, -2.0242281f, -1.9608474f, -1.8809084f, -1.7125635f, -1.6364362f, -1.6380706f, -1.6571108f,
-    -1.576825f, -1.5925847f, -1.5658011f, -1.5415472f, -1.4485426f, -1.409903f, -1.4147551f, -1.4167941f, -1.4890308f, -1.4521694f, -1.3116884f, -1.193332f,
-    -1.2126627f, -0.97405607f, -0.86062562f, -1.4475712f,
+    -1.8767029f, -2.0734839f, -2.208298f, -2.2059464f, -2.2838871f, -2.5557444f, -2.6933911f, -2.7244141f, -2.7556517f, -2.7151182f, -2.728801f, -2.6744995f,
+    -2.7079017f, -2.7161353f, -2.6676416f, -2.6338496f, -2.5843732f, -2.5571232f, -2.5217333f, -2.4279776f, -2.3375998f, -2.2983568f, -2.2629147f, -2.2456343f,
+    -2.1643538f, -2.1363251f, -2.0866673f, -2.0070257f, -1.9565386f, -1.9890851f, -2.0171366f, -2.0055044f, -1.9876002f, -1.9516066f, -1.8610867f, -1.7474531f,
+    -1.6745958f, -1.5106161f, -1.3836787f, -1.8478936f,
 };
 
 const float AUDIO_BIN_STD[40] = {
-    1.1066947f, 1.2459891f, 1.3232254f, 1.3330156f, 1.4090691f, 1.5027657f, 1.4212471f, 1.3857026f, 1.4258224f, 1.451704f, 1.3950484f, 1.4248997f,
-    1.6040937f, 1.7139213f, 1.8102548f, 1.8411558f, 1.8253075f, 1.8742193f, 1.8460499f, 1.7865725f, 1.8506855f, 1.9304129f, 1.888725f, 1.8633276f,
-    1.867112f, 1.9158123f, 1.9015638f, 1.8817968f, 2.0495241f, 2.0619195f, 1.9990118f, 1.9416475f, 1.9346857f, 1.9113749f, 1.8355192f, 1.7490567f,
-    1.6986486f, 1.6603256f, 1.7565919f, 1.8653861f,
+    1.7347372f, 1.857572f, 1.8837146f, 1.8560401f, 1.8985165f, 1.8841355f, 1.8056614f, 1.77266f, 1.8051121f, 1.8252302f, 1.814027f, 1.8474883f,
+    1.9449908f, 1.9984144f, 2.0449314f, 2.058013f, 2.069608f, 2.1062219f, 2.0873024f, 2.0479965f, 2.1060345f, 2.1615088f, 2.1592371f, 2.1505795f,
+    2.181721f, 2.2133563f, 2.1921098f, 2.1524422f, 2.2313802f, 2.2221062f, 2.1821561f, 2.1551812f, 2.1038234f, 2.067143f, 2.0255585f, 1.9832467f,
+    1.959662f, 1.9738119f, 2.0317028f, 2.0307276f,
 };
 
 
