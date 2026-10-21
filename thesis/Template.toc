@@ -50,8 +50,8 @@
 \contentsline {section}{\numberline {4.9}Evaluation Protocol}{45}{section.4.9}%
 \contentsline {subsection}{\numberline {4.9.1}Grouped Train/Validation Split}{45}{subsection.4.9.1}%
 \contentsline {subsection}{\numberline {4.9.2}Metrics}{46}{subsection.4.9.2}%
-\contentsline {subsection}{\numberline {4.9.3}On-Device Measurements}{47}{subsection.4.9.3}%
-\contentsline {section}{\numberline {4.10}Chapter Summary}{47}{section.4.10}%
+\contentsline {subsection}{\numberline {4.9.3}On-Device Measurements}{48}{subsection.4.9.3}%
+\contentsline {section}{\numberline {4.10}Chapter Summary}{48}{section.4.10}%
 \contentsline {chapter}{\numberline {5}Results and Evaluation}{49}{chapter.5}%
 \contentsline {chapter}{\numberline {6}Discussion}{50}{chapter.6}%
 \contentsline {chapter}{\numberline {7}Conclusion}{51}{chapter.7}%

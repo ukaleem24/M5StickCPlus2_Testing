@@ -14,7 +14,7 @@
 \contentsline {figure}{\numberline {4.4}{\ignorespaces Decision-level fusion with per-class weights (top) and the coordinate-ascent search used to determine the weights on the validation data (bottom).}}{37}{figure.4.4}%
 \contentsline {figure}{\numberline {4.5}{\ignorespaces Export of a trained model to the device firmware. All constants used on the device are generated automatically from the training pipeline.}}{42}{figure.4.5}%
 \contentsline {figure}{\numberline {4.6}{\ignorespaces Structure of the inference firmware. After the start-up phase, recording, preprocessing, inference and output are repeated continuously.}}{45}{figure.4.6}%
-\contentsline {figure}{\numberline {4.7}{\ignorespaces Grouped splitting. Overlapping windows are grouped into activity instances, and whole instances are assigned to either the training or the validation set. A random split would distribute the overlapping windows of one instance across both sets.}}{46}{figure.4.7}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Grouped splitting. Long activity occurrences are cut into blocks, and whole blocks are assigned to either the training or the validation set. Training windows that overlap a validation window are discarded. A random split would distribute overlapping windows across both sets.}}{47}{figure.4.7}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

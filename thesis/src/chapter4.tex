@@ -448,12 +448,13 @@ with a trained fusion head, this method has only a single free parameter and is
 therefore less prone to overfitting on a small dataset.
 
 A single weight, however, assumes that the relative reliability of the two
-modalities is the same for every class. This assumption does not hold for the
-present activity set. For some activities the motion pattern is distinctive while
-the sound is not. Standing idle and measuring, for example, produce hardly any
-sound. For others the opposite is true, and the powered screwdriver is the
-clearest example of an activity with a distinctive acoustic signature. The method
-was therefore extended to one weight per class. With $C = 9$ classes, this gives
+modalities is the same for every class. There is little reason to expect this for
+the present activity set, because the activities differ strongly in how much
+characteristic motion and how much characteristic sound they produce. For some
+classes, the inertial model is therefore likely to be the more reliable source,
+and for others the acoustic model. Which modality is more reliable for which class
+is not fixed in advance but determined from the data. The method was therefore
+extended to one weight per class. With $C = 9$ classes, this gives
 nine weights $w_1, \dots, w_9$, and the fused score of class $c$ becomes
 \begin{equation}
   p_c(x) = w_c \cdot p^{\mathrm{IMU}}_c(x) + (1 - w_c) \cdot p^{\mathrm{audio}}_c(x).
@@ -1005,79 +1006,96 @@ Consecutive windows of one uninterrupted activity occurrence start exactly 1\,s
 apart, so the additional 0.5\,s serves as a margin. Small irregularities in the
 window start times therefore do not split one occurrence into several groups,
 while occurrences separated by a pause or by another activity, which leave a gap
-of at least one further stride, are still kept apart. The 2565 windows form 125
-such groups. The split is then made separately for each class. The groups of a
-class are shuffled, and whole groups are assigned to the validation set until it
-holds at least 20\,\% of that class's windows. The remaining groups form the
-training set. Every activity instance therefore lies entirely in one of the two
-sets, and a fixed random seed makes the split identical for all models, so that
-their results can be compared directly. Figure~\ref{fig:grouped-split} illustrates
-the principle.
+of at least one further stride, are still kept apart. The 2565 windows form 125 such groups.
+
+Some of these groups are very long. In recordings with a single long activity,
+such as walking or carrying a container, one group can contain more than half of
+all windows of a class. If whole groups were assigned to one side of the split,
+such a group alone would exceed the intended validation share of its class.
+Groups with more than 20 windows are therefore cut into blocks of equal size with
+at most 20 consecutive windows each, which gives 204 blocks in total. The split is
+then made separately for each class. The blocks of a class are shuffled and
+considered one after another, and a block is assigned to the validation set only
+if this brings the number of validation windows of the class closer to 20\,\%.
+The remaining blocks form the training set.
+
+Cutting a group into blocks creates a new boundary inside a continuous activity,
+where the last window of one block overlaps the first window of the next. The same
+situation occurs at every transition between two activities. For this reason,
+every training window whose time span overlaps a validation window is removed
+from the training set. Since windows start 1\,s apart and last 2\,s, this affects
+exactly the windows directly adjacent to a validation block. In total, 56 windows
+(2.2\,\%) are discarded in this way. As a result, no training window shares any
+samples with a validation window, and a fixed random seed makes the split
+identical for all models, so that their results can be compared directly.
+Figure~\ref{fig:grouped-split} illustrates the principle.
 
 \begin{figure}[htbp]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[x=1cm, y=1cm, font=\scriptsize]
-  % activity instances on the timeline
-  \foreach \a/\b/\s/\t in {0/3.5/10/{instance 1 (A)}, 3.5/6.5/30/{instance 2 (B)},
-                           6.5/9.5/10/{instance 3 (A)}, 9.5/12/30/{instance 4 (B)}} {
-    \fill[black!\s] (\a,0) rectangle (\b,0.6);
-    \draw (\a,0) rectangle (\b,0.6);
-    \node at ({(\a+\b)/2},0.3) {\t};
-  }
+  % one long activity occurrence (class A) followed by a short one (class B)
+  \fill[black!10] (0,0) rectangle (9,0.6);
+  \fill[black!30] (9,0) rectangle (12,0.6);
+  \draw (0,0) rectangle (9,0.6); \draw (9,0) rectangle (12,0.6);
+  \node at (4.5,0.3) {long occurrence of class A};
+  \node at (10.5,0.3) {occurrence of class B};
   \draw[-{Latex[length=1.6mm]}] (0,-0.3) -- (12,-0.3) node[right] {time};
-  % overlapping windows of instance 1
-  \foreach \i in {0,1,2,3} \draw[|-|] (0.5*\i,-0.6-0.22*\i) -- (0.5*\i+2,-0.6-0.22*\i);
-  \node[anchor=west] at (3.8,-0.93) {overlapping windows within instance 1};
-  % grouped assignment
-  \node[anchor=west, font=\scriptsize\bfseries] at (0,-1.75) {Grouped split (used):};
-  \foreach \a/\b/\s in {0/3.5/train, 3.5/6.5/val, 6.5/9.5/val, 9.5/12/train}
-    \draw[thick] (\a,-2.35) rectangle (\b,-2.0) node[midway] {\s};
+  % cut into blocks
+  \node[anchor=west, font=\scriptsize\bfseries] at (0,-0.75) {Cut into blocks of at most 20 windows:};
+  \foreach \a/\b/\t in {0/3/block 1, 3/6/block 2, 6/9/block 3, 9/12/block 4}
+    \draw (\a,-1.45) rectangle (\b,-1.05) node[midway] {\t};
+  % assignment with discarded buffer windows
+  \node[anchor=west, font=\scriptsize\bfseries] at (0,-1.9) {Assignment (used):};
+  \draw[thick] (0,-2.6) rectangle (2.6,-2.2) node[midway] {train};
+  \fill[pattern=north east lines] (2.6,-2.6) rectangle (3,-2.2); \draw (2.6,-2.6) rectangle (3,-2.2);
+  \draw[thick] (3,-2.6) rectangle (6,-2.2) node[midway] {val};
+  \fill[pattern=north east lines] (6,-2.6) rectangle (6.4,-2.2); \draw (6,-2.6) rectangle (6.4,-2.2);
+  \draw[thick] (6.4,-2.6) rectangle (12,-2.2) node[midway] {train};
+  \draw[<-] (2.8,-2.65) -- (2.8,-2.95) node[below, align=center] {discarded window\\(overlaps val)};
+  \draw[<-] (6.2,-2.65) -- (6.2,-2.95) node[below] {discarded window};
   % random assignment
-  \node[anchor=west, font=\scriptsize\bfseries] at (0,-2.85) {Random split (avoided):};
+  \node[anchor=west, font=\scriptsize\bfseries] at (0,-4.0) {Random split (avoided):};
   \foreach \i/\s in {0/train,1/val,2/train,3/val,4/train}
-    \draw (0.7*\i,-3.45) rectangle (0.7*\i+0.7,-3.1) node[midway] {\s};
-  \node[anchor=west] at (3.8,-3.28) {overlapping windows of instance 1 fall on both sides};
+    \draw (0.7*\i,-4.8) rectangle (0.7*\i+0.7,-4.4) node[midway] {\s};
+  \node[anchor=west] at (3.8,-4.6) {overlapping windows fall on both sides};
 \end{tikzpicture}}
-\caption{Grouped splitting. Overlapping windows are grouped into activity
-instances, and whole instances are assigned to either the training or the
-validation set. A random split would distribute the overlapping windows of one
-instance across both sets.}
+\caption{Grouped splitting. Long activity occurrences are cut into blocks, and
+whole blocks are assigned to either the training or the validation set. Training
+windows that overlap a validation window are discarded. A random split would
+distribute overlapping windows across both sets.}
 \label{fig:grouped-split}
 \end{figure}
 
-Table~\ref{tab:split} shows the resulting split. Because only whole groups can be
-moved, the validation share of a class is not exactly 20\,\%. It exceeds the
-target considerably when a class consists of a few long instances, as is the case
-for \texttt{walk}, \texttt{measuring} and \texttt{place\_container}, where a single
-group already contains a large part of the class. Overall, 946 windows (37\,\%)
-fall into the validation set and 1619 windows (63\,\%) into the training set. For
-\texttt{place\_container}, only 23 windows remain for training. This uneven split
-is a consequence of keeping activity instances intact, and its effect on the
-results is discussed in Chapter~\ref{ch:discussion}.
+Table~\ref{tab:split} shows the resulting split. Because only whole blocks can be
+moved, the validation share of a class is not exactly 20\,\%, but it lies between
+20 and 22\,\% for all classes. Overall, 530 windows (20.7\,\%) form the validation
+set and 1979 windows (77.2\,\%) the training set, while 56 windows (2.2\,\%) are
+discarded as overlap buffers.
 
 \begin{table}[htbp]
 \centering
 \small
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|l|r|r|r|r|}
+\begin{tabular}{|l|r|r|r|r|r|}
 \hline
-\textbf{Class} & \textbf{Training} & \textbf{Validation} & \textbf{Total} & \textbf{Validation share} \\
+\textbf{Class} & \textbf{Training} & \textbf{Validation} & \textbf{Discarded} & \textbf{Total} & \textbf{Val.\ share} \\
 \hline
-\texttt{assemble\_parts}   & 130 &  36 & 166 & 22\,\% \\
-\texttt{carry\_container}  & 175 &  45 & 220 & 20\,\% \\
-\texttt{hammering}         & 170 &  80 & 250 & 32\,\% \\
-\texttt{idle}              & 187 & 120 & 307 & 39\,\% \\
-\texttt{insert\_screws}    & 185 &  61 & 246 & 25\,\% \\
-\texttt{measuring}         & 159 & 161 & 320 & 50\,\% \\
-\texttt{place\_container}  &  23 &  51 &  74 & 69\,\% \\
-\texttt{screw\_tightening} & 454 & 142 & 596 & 24\,\% \\
-\texttt{walk}              & 136 & 250 & 386 & 65\,\% \\
+\texttt{assemble\_parts}   & 122 &  35 & 9 & 166 & 21\,\% \\
+\texttt{carry\_container}  & 166 &  45 & 9 & 220 & 20\,\% \\
+\texttt{hammering}         & 193 &  51 & 6 & 250 & 20\,\% \\
+\texttt{idle}              & 243 &  61 & 3 & 307 & 20\,\% \\
+\texttt{insert\_screws}    & 185 &  54 & 7 & 246 & 22\,\% \\
+\texttt{measuring}         & 244 &  71 & 5 & 320 & 22\,\% \\
+\texttt{place\_container}  &  55 &  15 & 4 &  74 & 20\,\% \\
+\texttt{screw\_tightening} & 467 & 122 & 7 & 596 & 20\,\% \\
+\texttt{walk}              & 304 &  76 & 6 & 386 & 20\,\% \\
 \hline
-\textbf{Total}             & \textbf{1619} & \textbf{946} & \textbf{2565} & \textbf{37\,\%} \\
+\textbf{Total} & \textbf{1979} & \textbf{530} & \textbf{56} & \textbf{2565} & \textbf{21\,\%} \\
 \hline
 \end{tabular}
-\caption{Training and validation windows per class after the grouped split.}
+\caption{Training, validation and discarded windows per class after the grouped
+split.}
 \label{tab:split}
 \end{table}
 
