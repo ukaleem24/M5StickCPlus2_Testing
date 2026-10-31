@@ -1,0 +1,195 @@
+    0.02  ets Jul 29 2019 12:21:46
+    0.02  
+    0.02  rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+    0.02  configsip: 271414342, SPIWP:0xee
+    0.03  clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+    0.03  mode:DIO, clock div:2
+    0.03  load:0x3fff0030,len:1184
+    0.04  load:0x40078000,len:13232
+    0.04  load:0x40080400,len:3028
+    0.04  entry 0x400805e4
+    0.60  IMU arena used: 15896 / 20480 bytes
+    0.61  Audio arena used: 18072 / 20480 bytes
+    0.61  
+    0.61  === Self-test: known-label vectors, no live capture ===
+    1.68  Vector 0: predicted=assemble_parts (59.6%) true=assemble_parts [OK]
+    2.74  Vector 1: predicted=carry_container (28.4%) true=carry_container [OK]
+    3.81  Vector 2: predicted=hammering (43.5%) true=hammering [OK]
+    4.88  Vector 3: predicted=idle (27.3%) true=idle [OK]
+    5.95  Vector 4: predicted=measuring (61.6%) true=insert_screws [WRONG]
+    7.02  Vector 5: predicted=insert_screws (34.0%) true=measuring [WRONG]
+    8.08  Vector 6: predicted=place_container (73.2%) true=place_container [OK]
+    9.15  Vector 7: predicted=screw_tightening (91.7%) true=screw_tightening [OK]
+   10.22  Vector 8: predicted=walk (43.9%) true=walk [OK]
+   10.22  Self-test: 7/9 correct
+   10.22  
+   15.35  IMU samples captured: 225 (cap: 550)
+   15.35  Audio raw sample range: [-1352, 1448]
+   16.42  Timing: invoke=1066ms
+   16.42  Predicted: insert_screws (53.8%)
+   18.54  IMU samples captured: 209 (cap: 550)
+   18.54  Audio raw sample range: [-5184, 4000]
+   19.61  Timing: invoke=1066ms
+   19.61  Predicted: insert_screws (63.2%)
+   21.72  IMU samples captured: 200 (cap: 550)
+   21.72  Audio raw sample range: [-2392, 2760]
+   22.79  Timing: invoke=1066ms
+   22.79  Predicted: insert_screws (56.3%)
+   24.90  IMU samples captured: 217 (cap: 550)
+   24.90  Audio raw sample range: [-544, 592]
+   25.98  Timing: invoke=1066ms
+   25.98  Predicted: insert_screws (54.6%)
+   28.09  IMU samples captured: 226 (cap: 550)
+   28.09  Audio raw sample range: [-552, 432]
+   29.16  Timing: invoke=1066ms
+   29.16  Predicted: insert_screws (56.0%)
+   31.27  IMU samples captured: 207 (cap: 550)
+   31.27  Audio raw sample range: [-416, 472]
+   32.35  Timing: invoke=1066ms
+   32.35  Predicted: insert_screws (58.1%)
+   34.46  IMU samples captured: 200 (cap: 550)
+   34.46  Audio raw sample range: [-472, 600]
+   35.53  Timing: invoke=1066ms
+   35.53  Predicted: insert_screws (67.0%)
+   37.64  IMU samples captured: 214 (cap: 550)
+   37.64  Audio raw sample range: [-792, 648]
+   38.71  Timing: invoke=1066ms
+   38.71  Predicted: insert_screws (55.1%)
+   40.83  IMU samples captured: 226 (cap: 550)
+   40.83  Audio raw sample range: [-280, 296]
+   41.90  Timing: invoke=1066ms
+   41.90  Predicted: insert_screws (53.7%)
+   44.01  IMU samples captured: 210 (cap: 550)
+   44.01  Audio raw sample range: [-400, 344]
+   45.08  Timing: invoke=1066ms
+   45.08  Predicted: insert_screws (53.7%)
+   47.19  IMU samples captured: 200 (cap: 550)
+   47.19  Audio raw sample range: [-704, 592]
+   48.27  Timing: invoke=1066ms
+   48.27  Predicted: insert_screws (56.3%)
+   50.38  IMU samples captured: 215 (cap: 550)
+   50.38  Audio raw sample range: [-400, 376]
+   51.45  Timing: invoke=1066ms
+   51.45  Predicted: insert_screws (53.7%)
+   53.56  IMU samples captured: 225 (cap: 550)
+   53.56  Audio raw sample range: [-416, 312]
+   54.64  Timing: invoke=1066ms
+   54.64  Predicted: insert_screws (53.7%)
+   56.75  IMU samples captured: 208 (cap: 550)
+   56.75  Audio raw sample range: [-560, 848]
+   57.82  Timing: invoke=1066ms
+   57.82  Predicted: insert_screws (55.6%)
+   59.93  IMU samples captured: 200 (cap: 550)
+   59.93  Audio raw sample range: [-304, 360]
+   61.00  Timing: invoke=1066ms
+   61.00  Predicted: insert_screws (54.1%)
+   63.11  IMU samples captured: 219 (cap: 550)
+   63.12  Audio raw sample range: [-184, 168]
+   64.19  Timing: invoke=1066ms
+   64.19  Predicted: insert_screws (53.7%)
+   66.30  IMU samples captured: 224 (cap: 550)
+   66.30  Audio raw sample range: [-704, 656]
+   67.37  Timing: invoke=1067ms
+   67.37  Predicted: insert_screws (55.3%)
+   69.48  IMU samples captured: 209 (cap: 550)
+   69.48  Audio raw sample range: [-11632, 13576]
+   70.56  Timing: invoke=1066ms
+   70.56  Predicted: insert_screws (56.9%)
+   72.67  IMU samples captured: 200 (cap: 550)
+   72.67  Audio raw sample range: [-664, 648]
+   73.74  Timing: invoke=1066ms
+   73.74  Predicted: insert_screws (59.0%)
+   75.85  IMU samples captured: 218 (cap: 550)
+   75.85  Audio raw sample range: [-1464, 848]
+   76.93  Timing: invoke=1066ms
+   76.93  Predicted: insert_screws (54.9%)
+   79.04  IMU samples captured: 222 (cap: 550)
+   79.04  Audio raw sample range: [-304, 256]
+   80.11  Timing: invoke=1067ms
+   80.11  Predicted: insert_screws (54.1%)
+   82.22  IMU samples captured: 208 (cap: 550)
+   82.22  Audio raw sample range: [-432, 456]
+   83.29  Timing: invoke=1066ms
+   83.29  Predicted: insert_screws (54.6%)
+   85.40  IMU samples captured: 204 (cap: 550)
+   85.41  Audio raw sample range: [-904, 760]
+   86.48  Timing: invoke=1066ms
+   86.48  Predicted: insert_screws (56.2%)
+   88.59  IMU samples captured: 218 (cap: 550)
+   88.59  Audio raw sample range: [-352, 304]
+   89.66  Timing: invoke=1066ms
+   89.66  Predicted: insert_screws (53.9%)
+   91.77  IMU samples captured: 217 (cap: 550)
+   91.77  Audio raw sample range: [-400, 408]
+   92.85  Timing: invoke=1066ms
+   92.85  Predicted: insert_screws (54.4%)
+   94.96  IMU samples captured: 202 (cap: 550)
+   94.96  Audio raw sample range: [-752, 512]
+   96.03  Timing: invoke=1066ms
+   96.03  Predicted: insert_screws (54.9%)
+   98.14  IMU samples captured: 208 (cap: 550)
+   98.14  Audio raw sample range: [-608, 568]
+   99.22  Timing: invoke=1066ms
+   99.22  Predicted: insert_screws (59.2%)
+  101.33  IMU samples captured: 223 (cap: 550)
+  101.33  Audio raw sample range: [-544, 560]
+  102.40  Timing: invoke=1066ms
+  102.40  Predicted: insert_screws (55.6%)
+  104.51  IMU samples captured: 217 (cap: 550)
+  104.51  Audio raw sample range: [-544, 624]
+  105.58  Timing: invoke=1066ms
+  105.58  Predicted: insert_screws (58.1%)
+  107.69  IMU samples captured: 199 (cap: 550)
+  107.70  Audio raw sample range: [-408, 352]
+  108.77  Timing: invoke=1066ms
+  108.77  Predicted: insert_screws (53.9%)
+  110.88  IMU samples captured: 209 (cap: 550)
+  110.88  Audio raw sample range: [-480, 464]
+  111.95  Timing: invoke=1066ms
+  111.95  Predicted: insert_screws (56.9%)
+  114.06  IMU samples captured: 228 (cap: 550)
+  114.06  Audio raw sample range: [-280, 288]
+  115.14  Timing: invoke=1066ms
+  115.14  Predicted: insert_screws (53.7%)
+  117.25  IMU samples captured: 211 (cap: 550)
+  117.25  Audio raw sample range: [-624, 664]
+  118.32  Timing: invoke=1067ms
+  118.32  Predicted: insert_screws (55.1%)
+  120.43  IMU samples captured: 200 (cap: 550)
+  120.43  Audio raw sample range: [-488, 496]
+  121.51  Timing: invoke=1066ms
+  121.51  Predicted: insert_screws (54.2%)
+  123.62  IMU samples captured: 216 (cap: 550)
+  123.62  Audio raw sample range: [-744, 488]
+  124.69  Timing: invoke=1066ms
+  124.69  Predicted: insert_screws (54.4%)
+  126.80  IMU samples captured: 226 (cap: 550)
+  126.80  Audio raw sample range: [-848, 848]
+  127.87  Timing: invoke=1067ms
+  127.87  Predicted: insert_screws (57.9%)
+  129.99  IMU samples captured: 210 (cap: 550)
+  129.99  Audio raw sample range: [-744, 760]
+  131.06  Timing: invoke=1066ms
+  131.06  Predicted: insert_screws (56.5%)
+  133.17  IMU samples captured: 202 (cap: 550)
+  133.17  Audio raw sample range: [-760, 752]
+  134.24  Timing: invoke=1066ms
+  134.24  Predicted: insert_screws (57.1%)
+  136.35  IMU samples captured: 218 (cap: 550)
+  136.35  Audio raw sample range: [-848, 984]
+  137.43  Timing: invoke=1066ms
+  137.43  Predicted: insert_screws (55.5%)
+  139.54  IMU samples captured: 218 (cap: 550)
+  139.54  Audio raw sample range: [-656, 600]
+  140.61  Timing: invoke=1066ms
+  140.61  Predicted: insert_screws (54.4%)
+  142.72  IMU samples captured: 200 (cap: 550)
+  142.72  Audio raw sample range: [-728, 616]
+  143.80  Timing: invoke=1066ms
+  143.80  Predicted: insert_screws (54.6%)
+  145.91  IMU samples captured: 210 (cap: 550)
+  145.91  Audio raw sample range: [-600, 528]
+  146.98  Timing: invoke=1066ms
+  146.98  Predicted: insert_screws (54.2%)
+  149.09  IMU samples captured: 225 (cap: 550)
+  149.09  Audio raw sample range: [-600, 712]

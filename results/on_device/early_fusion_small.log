@@ -1,0 +1,345 @@
+    0.02  ets Jul 29 2019 12:21:46
+    0.02  
+    0.02  rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+    0.02  configsip: 271414342, SPIWP:0xee
+    0.03  clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+    0.03  mode:DIO, clock div:2
+    0.03  load:0x3fff0030,len:1184
+    0.04  load:0x40078000,len:13232
+    0.04  load:0x40080400,len:3028
+    0.04  entry 0x400805e4
+    0.60  Tensor arena used: 22288 / 40960 bytes
+    0.60  
+    0.60  === Self-test: known-label vectors, no live capture ===
+    2.02  Vector 0: predicted=assemble_parts (99.6%) true=assemble_parts [OK]
+    3.44  Vector 1: predicted=place_container (64.5%) true=carry_container [WRONG]
+    4.86  Vector 2: predicted=hammering (90.2%) true=hammering [OK]
+    6.27  Vector 3: predicted=idle (98.0%) true=idle [OK]
+    7.69  Vector 4: predicted=measuring (99.2%) true=insert_screws [WRONG]
+    9.11  Vector 5: predicted=measuring (73.0%) true=measuring [OK]
+   10.53  Vector 6: predicted=place_container (99.6%) true=place_container [OK]
+   11.95  Vector 7: predicted=screw_tightening (99.6%) true=screw_tightening [OK]
+   13.37  Vector 8: predicted=hammering (99.6%) true=walk [WRONG]
+   13.37  Self-test: 6/9 correct
+   13.37  
+   18.49  IMU samples captured: 225 (cap: 550)
+   18.50  IMU accel mean (x,y,z): (0.3642, -0.8523, 0.3757)  -- target idle ~= (-0.19, -0.57, 0.77)
+   18.50  Audio raw sample range: [-936, 1168]
+   18.51  First raw mel frame [0..4]: 1.218 -0.225 -1.021 -0.992 -1.659
+   18.51  Last raw mel frame [0..4]: -2.772 -1.569 -1.190 -1.582 -1.960
+   19.94  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   19.94  Predicted: idle (99.6%)
+   22.05  IMU samples captured: 218 (cap: 550)
+   22.06  IMU accel mean (x,y,z): (0.3639, -0.8523, 0.3757)  -- target idle ~= (-0.19, -0.57, 0.77)
+   22.06  Audio raw sample range: [-648, 600]
+   22.07  First raw mel frame [0..4]: -2.252 -2.449 -1.153 -0.340 -1.373
+   22.07  Last raw mel frame [0..4]: -3.110 -2.529 -2.391 -2.201 -2.346
+   23.50  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   23.50  Predicted: idle (99.6%)
+   25.61  IMU samples captured: 212 (cap: 550)
+   25.62  IMU accel mean (x,y,z): (0.3639, -0.8522, 0.3757)  -- target idle ~= (-0.19, -0.57, 0.77)
+   25.62  Audio raw sample range: [-264, 240]
+   25.63  First raw mel frame [0..4]: -2.856 -2.154 -1.692 -1.637 -2.044
+   25.63  Last raw mel frame [0..4]: -2.838 -3.264 -2.122 -2.195 -2.680
+   27.06  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   27.06  Predicted: idle (99.6%)
+   29.17  IMU samples captured: 208 (cap: 550)
+   29.18  IMU accel mean (x,y,z): (0.3640, -0.8523, 0.3760)  -- target idle ~= (-0.19, -0.57, 0.77)
+   29.18  Audio raw sample range: [-912, 944]
+   29.19  First raw mel frame [0..4]: -2.591 -2.803 -3.460 -3.474 -3.681
+   29.19  Last raw mel frame [0..4]: -4.123 -3.621 -3.633 -2.977 -3.195
+   30.62  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   30.62  Predicted: idle (99.6%)
+   32.73  IMU samples captured: 203 (cap: 550)
+   32.74  IMU accel mean (x,y,z): (0.3638, -0.8524, 0.3764)  -- target idle ~= (-0.19, -0.57, 0.77)
+   32.74  Audio raw sample range: [-880, 824]
+   32.75  First raw mel frame [0..4]: -2.665 -2.337 -0.600 -0.160 -1.715
+   32.75  Last raw mel frame [0..4]: -2.858 -2.540 -2.602 -2.555 -3.873
+   34.18  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   34.18  Predicted: idle (99.6%)
+   36.29  IMU samples captured: 199 (cap: 550)
+   36.30  IMU accel mean (x,y,z): (0.3641, -0.8521, 0.3763)  -- target idle ~= (-0.19, -0.57, 0.77)
+   36.30  Audio raw sample range: [-744, 800]
+   36.31  First raw mel frame [0..4]: -3.556 -3.977 -2.969 -2.191 -2.850
+   36.31  Last raw mel frame [0..4]: -2.886 -2.559 -2.268 -1.629 -1.506
+   37.74  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   37.74  Predicted: idle (99.6%)
+   39.85  IMU samples captured: 209 (cap: 550)
+   39.86  IMU accel mean (x,y,z): (0.3641, -0.8524, 0.3767)  -- target idle ~= (-0.19, -0.57, 0.77)
+   39.86  Audio raw sample range: [-992, 1216]
+   39.87  First raw mel frame [0..4]: -2.402 -2.138 -2.094 -2.202 -1.595
+   39.87  Last raw mel frame [0..4]: -2.908 -2.644 -1.578 -1.741 -2.132
+   41.30  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   41.30  Predicted: idle (99.6%)
+   43.41  IMU samples captured: 207 (cap: 550)
+   43.42  IMU accel mean (x,y,z): (0.3640, -0.8523, 0.3769)  -- target idle ~= (-0.19, -0.57, 0.77)
+   43.42  Audio raw sample range: [-760, 616]
+   43.43  First raw mel frame [0..4]: -2.668 -3.492 -3.195 -3.384 -2.708
+   43.43  Last raw mel frame [0..4]: -2.815 -2.451 -1.476 -0.915 -1.945
+   44.86  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   44.86  Predicted: idle (99.6%)
+   46.97  IMU samples captured: 217 (cap: 550)
+   46.98  IMU accel mean (x,y,z): (0.3641, -0.8524, 0.3768)  -- target idle ~= (-0.19, -0.57, 0.77)
+   46.98  Audio raw sample range: [-576, 512]
+   46.99  First raw mel frame [0..4]: -2.270 -1.912 -1.158 -0.950 -1.673
+   46.99  Last raw mel frame [0..4]: -1.873 -1.117 -0.243 0.262 -0.965
+   48.42  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   48.42  Predicted: idle (99.6%)
+   50.53  IMU samples captured: 220 (cap: 550)
+   50.54  IMU accel mean (x,y,z): (0.3639, -0.8525, 0.3767)  -- target idle ~= (-0.19, -0.57, 0.77)
+   50.55  Audio raw sample range: [-816, 864]
+   50.55  First raw mel frame [0..4]: -3.339 -3.287 -2.778 -1.703 -2.707
+   50.55  Last raw mel frame [0..4]: -2.875 -2.339 -2.360 -1.818 -2.059
+   51.98  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   51.98  Predicted: idle (96.1%)
+   54.09  IMU samples captured: 228 (cap: 550)
+   54.10  IMU accel mean (x,y,z): (0.3638, -0.8525, 0.3769)  -- target idle ~= (-0.19, -0.57, 0.77)
+   54.11  Audio raw sample range: [-1000, 1000]
+   54.11  First raw mel frame [0..4]: -2.817 -3.158 -2.888 -2.257 -2.587
+   54.11  Last raw mel frame [0..4]: -3.321 -2.610 -2.015 -2.003 -3.025
+   55.54  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   55.54  Predicted: idle (99.6%)
+   57.65  IMU samples captured: 222 (cap: 550)
+   57.66  IMU accel mean (x,y,z): (0.3641, -0.8523, 0.3769)  -- target idle ~= (-0.19, -0.57, 0.77)
+   57.67  Audio raw sample range: [-1160, 1008]
+   57.67  First raw mel frame [0..4]: -2.891 -3.257 -3.211 -2.574 -2.532
+   57.67  Last raw mel frame [0..4]: -1.969 -2.190 -2.627 -2.037 -1.449
+   59.10  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   59.10  Predicted: idle (99.6%)
+   61.22  IMU samples captured: 217 (cap: 550)
+   61.22  IMU accel mean (x,y,z): (0.3640, -0.8523, 0.3769)  -- target idle ~= (-0.19, -0.57, 0.77)
+   61.23  Audio raw sample range: [-920, 1176]
+   61.23  First raw mel frame [0..4]: -2.768 -2.807 -1.393 -1.375 -1.793
+   61.23  Last raw mel frame [0..4]: -3.032 -3.505 -3.226 -2.914 -1.920
+   62.66  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   62.66  Predicted: idle (64.5%)
+   64.78  IMU samples captured: 208 (cap: 550)
+   64.78  IMU accel mean (x,y,z): (0.3638, -0.8526, 0.3769)  -- target idle ~= (-0.19, -0.57, 0.77)
+   64.79  Audio raw sample range: [-880, 816]
+   64.79  First raw mel frame [0..4]: -2.999 -2.673 -2.194 -2.549 -2.759
+   64.79  Last raw mel frame [0..4]: -1.564 -1.320 -1.307 -0.666 -1.101
+   66.22  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   66.22  Predicted: insert_screws (96.1%)
+   68.34  IMU samples captured: 206 (cap: 550)
+   68.34  IMU accel mean (x,y,z): (0.3613, -0.8489, 0.3800)  -- target idle ~= (-0.19, -0.57, 0.77)
+   68.35  Audio raw sample range: [-2360, 2496]
+   68.35  First raw mel frame [0..4]: -2.491 -3.413 -2.232 -1.671 -1.636
+   68.35  Last raw mel frame [0..4]: -0.478 -0.751 -0.812 -1.267 -0.622
+   69.78  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+   69.78  Predicted: idle (99.2%)
+   71.90  IMU samples captured: 201 (cap: 550)
+   71.90  IMU accel mean (x,y,z): (0.4235, 0.0249, 0.8873)  -- target idle ~= (-0.19, -0.57, 0.77)
+   71.91  Audio raw sample range: [-1992, 2576]
+   71.91  First raw mel frame [0..4]: -1.912 -2.556 -2.784 -3.176 -3.554
+   71.92  Last raw mel frame [0..4]: -1.051 -0.607 -0.946 -1.624 -1.738
+   73.34  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   73.35  Predicted: assemble_parts (93.4%)
+   75.46  IMU samples captured: 205 (cap: 550)
+   75.46  IMU accel mean (x,y,z): (-0.2922, 0.0158, 0.8181)  -- target idle ~= (-0.19, -0.57, 0.77)
+   75.47  Audio raw sample range: [-21688, 32751]
+   75.47  First raw mel frame [0..4]: -1.070 -2.701 -2.968 -2.966 -3.200
+   75.48  Last raw mel frame [0..4]: -0.735 -1.648 -1.424 -0.919 -1.554
+   76.90  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+   76.91  Predicted: assemble_parts (99.2%)
+   79.02  IMU samples captured: 208 (cap: 550)
+   79.02  IMU accel mean (x,y,z): (0.3338, -0.0065, 0.8036)  -- target idle ~= (-0.19, -0.57, 0.77)
+   79.03  Audio raw sample range: [-6440, 7208]
+   79.03  First raw mel frame [0..4]: 0.145 -1.159 -1.606 -1.660 -2.353
+   79.04  Last raw mel frame [0..4]: -2.151 -2.431 -3.137 -3.180 -3.661
+   80.47  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+   80.47  Predicted: assemble_parts (96.9%)
+   82.58  IMU samples captured: 218 (cap: 550)
+   82.58  IMU accel mean (x,y,z): (-0.0367, 0.4862, 0.8625)  -- target idle ~= (-0.19, -0.57, 0.77)
+   82.59  Audio raw sample range: [-2336, 3488]
+   82.59  First raw mel frame [0..4]: -0.910 -1.959 -2.500 -2.879 -2.895
+   82.60  Last raw mel frame [0..4]: -1.111 -2.374 -2.723 -3.213 -3.620
+   84.02  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   84.03  Predicted: assemble_parts (99.6%)
+   86.14  IMU samples captured: 222 (cap: 550)
+   86.14  IMU accel mean (x,y,z): (0.4813, 0.5213, 0.5998)  -- target idle ~= (-0.19, -0.57, 0.77)
+   86.15  Audio raw sample range: [-11664, 14920]
+   86.16  First raw mel frame [0..4]: -1.746 -2.661 -2.473 -2.230 -3.225
+   86.16  Last raw mel frame [0..4]: -0.784 -1.666 -1.674 -2.208 -2.012
+   87.59  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   87.59  Predicted: assemble_parts (96.9%)
+   89.70  IMU samples captured: 227 (cap: 550)
+   89.70  IMU accel mean (x,y,z): (-0.3349, 0.2545, 0.9016)  -- target idle ~= (-0.19, -0.57, 0.77)
+   89.71  Audio raw sample range: [-2232, 2344]
+   89.72  First raw mel frame [0..4]: -2.589 -3.274 -3.926 -3.502 -2.977
+   89.72  Last raw mel frame [0..4]: -1.454 -2.133 -2.624 -2.739 -2.447
+   91.15  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   91.15  Predicted: assemble_parts (99.6%)
+   93.26  IMU samples captured: 219 (cap: 550)
+   93.26  IMU accel mean (x,y,z): (-0.3147, 0.1558, 0.9118)  -- target idle ~= (-0.19, -0.57, 0.77)
+   93.27  Audio raw sample range: [-10576, 8864]
+   93.28  First raw mel frame [0..4]: -1.396 -2.662 -2.869 -3.684 -2.873
+   93.28  Last raw mel frame [0..4]: -0.227 -0.864 -0.768 -0.896 -1.244
+   94.71  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+   94.71  Predicted: assemble_parts (99.6%)
+   96.82  IMU samples captured: 213 (cap: 550)
+   96.83  IMU accel mean (x,y,z): (-0.2306, -0.0456, 0.9040)  -- target idle ~= (-0.19, -0.57, 0.77)
+   96.83  Audio raw sample range: [-18160, 32112]
+   96.84  First raw mel frame [0..4]: -1.361 -0.861 -1.315 -2.370 -2.798
+   96.84  Last raw mel frame [0..4]: 1.405 0.482 0.256 0.073 -0.462
+   98.27  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+   98.27  Predicted: assemble_parts (99.6%)
+  100.38  IMU samples captured: 207 (cap: 550)
+  100.39  IMU accel mean (x,y,z): (-0.2355, 0.0186, 0.1987)  -- target idle ~= (-0.19, -0.57, 0.77)
+  100.39  Audio raw sample range: [-32752, 32751]
+  100.40  First raw mel frame [0..4]: 3.960 3.205 2.086 0.454 -0.113
+  100.40  Last raw mel frame [0..4]: 1.419 0.549 1.509 1.465 1.123
+  101.83  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  101.83  Predicted: hammering (99.6%)
+  103.94  IMU samples captured: 200 (cap: 550)
+  103.95  IMU accel mean (x,y,z): (-0.3204, 0.0647, 0.4115)  -- target idle ~= (-0.19, -0.57, 0.77)
+  103.95  Audio raw sample range: [-32752, 25048]
+  103.96  First raw mel frame [0..4]: 3.008 2.632 2.527 2.109 1.771
+  103.96  Last raw mel frame [0..4]: -2.696 -3.163 -3.766 -3.055 -2.879
+  105.39  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+  105.39  Predicted: hammering (63.3%)
+  107.50  IMU samples captured: 202 (cap: 550)
+  107.51  IMU accel mean (x,y,z): (-0.5460, -0.0701, 0.8505)  -- target idle ~= (-0.19, -0.57, 0.77)
+  107.51  Audio raw sample range: [-168, 128]
+  107.52  First raw mel frame [0..4]: -2.762 -2.924 -3.176 -3.611 -5.149
+  107.52  Last raw mel frame [0..4]: -3.652 -3.890 -3.166 -3.577 -3.952
+  108.95  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+  108.95  Predicted: insert_screws (76.6%)
+  111.06  IMU samples captured: 210 (cap: 550)
+  111.07  IMU accel mean (x,y,z): (-0.6003, 0.0450, 0.8039)  -- target idle ~= (-0.19, -0.57, 0.77)
+  111.07  Audio raw sample range: [-1384, 808]
+  111.08  First raw mel frame [0..4]: -1.897 -2.266 -2.442 -3.062 -3.053
+  111.08  Last raw mel frame [0..4]: -2.895 -3.096 -3.688 -3.871 -2.933
+  112.51  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  112.51  Predicted: insert_screws (84.4%)
+  114.62  IMU samples captured: 220 (cap: 550)
+  114.63  IMU accel mean (x,y,z): (-0.3391, 0.0341, 0.8907)  -- target idle ~= (-0.19, -0.57, 0.77)
+  114.63  Audio raw sample range: [-2768, 3160]
+  114.64  First raw mel frame [0..4]: -0.671 -2.499 -2.908 -2.380 -3.171
+  114.64  Last raw mel frame [0..4]: -2.896 -3.279 -4.318 -3.378 -3.762
+  116.07  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  116.07  Predicted: assemble_parts (99.6%)
+  118.18  IMU samples captured: 221 (cap: 550)
+  118.19  IMU accel mean (x,y,z): (-0.5448, -0.0323, 0.8194)  -- target idle ~= (-0.19, -0.57, 0.77)
+  118.19  Audio raw sample range: [-2976, 12152]
+  118.20  First raw mel frame [0..4]: -2.363 -3.333 -3.150 -3.166 -2.965
+  118.20  Last raw mel frame [0..4]: -2.445 -2.705 -2.887 -3.800 -3.542
+  119.63  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  119.63  Predicted: assemble_parts (84.4%)
+  121.74  IMU samples captured: 228 (cap: 550)
+  121.75  IMU accel mean (x,y,z): (-0.9440, 0.1360, 0.1371)  -- target idle ~= (-0.19, -0.57, 0.77)
+  121.75  Audio raw sample range: [-10304, 11744]
+  121.76  First raw mel frame [0..4]: -4.735 -3.622 -3.401 -2.613 -3.057
+  121.76  Last raw mel frame [0..4]: -2.226 -2.973 -3.026 -3.345 -3.614
+  123.19  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  123.19  Predicted: assemble_parts (78.1%)
+  125.30  IMU samples captured: 216 (cap: 550)
+  125.31  IMU accel mean (x,y,z): (-0.3780, -0.3036, 0.8946)  -- target idle ~= (-0.19, -0.57, 0.77)
+  125.31  Audio raw sample range: [-28000, 32751]
+  125.32  First raw mel frame [0..4]: -2.205 -3.079 -3.219 -2.934 -3.724
+  125.32  Last raw mel frame [0..4]: -3.619 -2.998 -3.372 -2.904 -2.689
+  126.75  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  126.75  Predicted: assemble_parts (92.6%)
+  128.86  IMU samples captured: 216 (cap: 550)
+  128.87  IMU accel mean (x,y,z): (-0.4312, -0.3181, 0.8636)  -- target idle ~= (-0.19, -0.57, 0.77)
+  128.87  Audio raw sample range: [-120, 112]
+  128.88  First raw mel frame [0..4]: -2.494 -3.185 -3.286 -3.475 -3.577
+  128.88  Last raw mel frame [0..4]: -3.346 -3.188 -3.514 -3.292 -3.158
+  130.31  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+  130.31  Predicted: insert_screws (64.1%)
+  132.42  IMU samples captured: 207 (cap: 550)
+  132.43  IMU accel mean (x,y,z): (-0.4272, -0.6922, 0.6070)  -- target idle ~= (-0.19, -0.57, 0.77)
+  132.43  Audio raw sample range: [-128, 144]
+  132.44  First raw mel frame [0..4]: -2.462 -3.119 -2.803 -2.629 -2.614
+  132.44  Last raw mel frame [0..4]: -3.063 -2.908 -3.065 -3.575 -4.098
+  133.87  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  133.87  Predicted: idle (99.6%)
+  135.98  IMU samples captured: 200 (cap: 550)
+  135.99  IMU accel mean (x,y,z): (-0.3827, -0.6103, 0.7137)  -- target idle ~= (-0.19, -0.57, 0.77)
+  135.99  Audio raw sample range: [-128, 128]
+  136.00  First raw mel frame [0..4]: -3.041 -3.077 -2.390 -2.477 -3.295
+  136.00  Last raw mel frame [0..4]: -2.814 -2.931 -2.776 -2.301 -2.627
+  137.43  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+  137.43  Predicted: idle (99.6%)
+  139.54  IMU samples captured: 203 (cap: 550)
+  139.55  IMU accel mean (x,y,z): (-0.3749, -0.5885, 0.7364)  -- target idle ~= (-0.19, -0.57, 0.77)
+  139.55  Audio raw sample range: [-104, 104]
+  139.56  First raw mel frame [0..4]: -3.293 -3.890 -3.554 -3.666 -3.741
+  139.56  Last raw mel frame [0..4]: -3.201 -2.647 -3.449 -3.306 -3.449
+  140.99  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+  140.99  Predicted: idle (99.6%)
+  143.10  IMU samples captured: 208 (cap: 550)
+  143.11  IMU accel mean (x,y,z): (-0.3793, -0.5678, 0.7509)  -- target idle ~= (-0.19, -0.57, 0.77)
+  143.11  Audio raw sample range: [-104, 120]
+  143.12  First raw mel frame [0..4]: -2.207 -2.610 -2.908 -3.036 -3.373
+  143.12  Last raw mel frame [0..4]: -3.270 -3.353 -3.683 -3.031 -3.458
+  144.55  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+  144.55  Predicted: idle (99.2%)
+  146.66  IMU samples captured: 219 (cap: 550)
+  146.67  IMU accel mean (x,y,z): (-0.3788, -0.5628, 0.7548)  -- target idle ~= (-0.19, -0.57, 0.77)
+  146.67  Audio raw sample range: [-112, 88]
+  146.68  First raw mel frame [0..4]: -3.063 -3.602 -3.761 -3.419 -5.003
+  146.68  Last raw mel frame [0..4]: -2.174 -2.958 -4.141 -3.581 -3.395
+  148.11  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+  148.11  Predicted: idle (99.2%)
+  150.22  IMU samples captured: 224 (cap: 550)
+  150.23  IMU accel mean (x,y,z): (-0.6943, -0.0521, 0.6613)  -- target idle ~= (-0.19, -0.57, 0.77)
+  150.23  Audio raw sample range: [-632, 552]
+  150.24  First raw mel frame [0..4]: -2.432 -2.973 -3.484 -3.084 -3.110
+  150.24  Last raw mel frame [0..4]: -2.011 -3.047 -3.230 -3.713 -3.337
+  151.67  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+  151.67  Predicted: insert_screws (80.1%)
+  153.78  IMU samples captured: 224 (cap: 550)
+  153.79  IMU accel mean (x,y,z): (0.4711, 0.5339, 0.3774)  -- target idle ~= (-0.19, -0.57, 0.77)
+  153.79  Audio raw sample range: [-32752, 32751]
+  153.80  First raw mel frame [0..4]: -2.480 -2.950 -2.661 -2.521 -2.478
+  153.80  Last raw mel frame [0..4]: -1.788 -1.839 -2.572 -3.265 -2.885
+  155.23  Timing: capture=2096ms features=30ms invoke=1417ms total=3543ms
+  155.23  Predicted: assemble_parts (96.1%)
+  157.34  IMU samples captured: 216 (cap: 550)
+  157.35  IMU accel mean (x,y,z): (0.3805, 0.0660, 0.9197)  -- target idle ~= (-0.19, -0.57, 0.77)
+  157.36  Audio raw sample range: [-1464, 1536]
+  157.36  First raw mel frame [0..4]: -3.082 -2.896 -3.411 -3.210 -2.899
+  157.36  Last raw mel frame [0..4]: -1.971 -3.038 -2.872 -2.783 -3.387
+  158.79  Timing: capture=2097ms features=30ms invoke=1417ms total=3544ms
+  158.79  Predicted: assemble_parts (87.1%)
+  160.90  IMU samples captured: 207 (cap: 550)
+  160.91  IMU accel mean (x,y,z): (0.2666, 0.0357, 0.9633)  -- target idle ~= (-0.19, -0.57, 0.77)
+  160.92  Audio raw sample range: [-576, 680]
+  160.92  First raw mel frame [0..4]: -1.933 -1.854 -2.351 -3.863 -3.821
+  160.92  Last raw mel frame [0..4]: -2.816 -2.532 -3.119 -3.354 -3.109
+  162.35  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  162.35  Predicted: assemble_parts (89.8%)
+  164.46  IMU samples captured: 200 (cap: 550)
+  164.47  IMU accel mean (x,y,z): (0.2449, 0.0330, 0.9700)  -- target idle ~= (-0.19, -0.57, 0.77)
+  164.48  Audio raw sample range: [-808, 696]
+  164.48  First raw mel frame [0..4]: -3.229 -3.370 -2.397 -1.741 -1.165
+  164.48  Last raw mel frame [0..4]: -2.353 -2.537 -2.904 -1.849 -1.180
+  165.91  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  165.92  Predicted: assemble_parts (98.8%)
+  168.03  IMU samples captured: 200 (cap: 550)
+  168.03  IMU accel mean (x,y,z): (0.2447, 0.0327, 0.9701)  -- target idle ~= (-0.19, -0.57, 0.77)
+  168.04  Audio raw sample range: [-848, 928]
+  168.04  First raw mel frame [0..4]: -2.295 -2.377 -1.431 -0.193 -0.766
+  168.05  Last raw mel frame [0..4]: -2.148 -2.219 -2.481 -2.545 -2.546
+  169.47  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  169.48  Predicted: place_container (52.7%)
+  171.59  IMU samples captured: 210 (cap: 550)
+  171.59  IMU accel mean (x,y,z): (0.2444, 0.0327, 0.9703)  -- target idle ~= (-0.19, -0.57, 0.77)
+  171.60  Audio raw sample range: [-512, 608]
+  171.60  First raw mel frame [0..4]: -2.858 -1.990 -1.362 -1.343 -0.205
+  171.61  Last raw mel frame [0..4]: -2.227 -2.723 -3.454 -3.240 -3.283
+  173.03  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  173.04  Predicted: assemble_parts (85.5%)
+  175.15  IMU samples captured: 217 (cap: 550)
+  175.15  IMU accel mean (x,y,z): (0.2447, 0.0329, 0.9710)  -- target idle ~= (-0.19, -0.57, 0.77)
+  175.16  Audio raw sample range: [-1272, 840]
+  175.16  First raw mel frame [0..4]: -2.502 -3.015 -3.326 -3.224 -3.684
+  175.17  Last raw mel frame [0..4]: -0.070 -0.423 -0.305 -0.842 -1.188
+  176.59  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms
+  176.60  Predicted: assemble_parts (73.8%)
+  178.71  IMU samples captured: 228 (cap: 550)
+  178.71  IMU accel mean (x,y,z): (0.2009, 0.0271, 0.9813)  -- target idle ~= (-0.19, -0.57, 0.77)
+  178.72  Audio raw sample range: [-1064, 608]
+  178.72  First raw mel frame [0..4]: -2.511 -3.158 -2.512 -2.570 -3.287
+  178.73  Last raw mel frame [0..4]: -3.131 -3.832 -2.619 -2.370 -3.243
+  180.15  Timing: capture=2095ms features=30ms invoke=1417ms total=3542ms

@@ -1,23 +1,28 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Commercial systems that monitor manual work in production}}{17}{table.2.1}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces Resource figures reported for activity recognition on embedded hardware.}}{24}{table.2.2}%
+\contentsline {table}{\numberline {2.3}{\ignorespaces Model types for activity recognition and their suitability for microcontrollers.}}{24}{table.2.3}%
+\contentsline {table}{\numberline {2.4}{\ignorespaces Effect of the evaluation protocol on reported results.}}{26}{table.2.4}%
+\contentsline {table}{\numberline {2.5}{\ignorespaces Comparison of closely related work.}}{27}{table.2.5}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Activity classes in the modelling dataset. Descriptions are taken from the 32-step assembly protocol. ``Typ.\ dur.'' is the range of mean coded-segment durations across the three recording sessions; for \texttt {screw\_tightening} it covers both the tightening and the merged loosening segments. ``Win.'' is the number of two-second windows per class in the final dominant-wrist dataset (Section~\ref {sec:stats}).}}{14}{table.3.1}%
-\contentsline {table}{\numberline {3.2}{\ignorespaces Body placements: data recorded during acquisition versus data used as model input in the final pipeline. Only the dominant-wrist inertial and acoustic streams reach the model.}}{18}{table.3.2}%
-\contentsline {table}{\numberline {3.3}{\ignorespaces Data-acquisition sessions. ``Session'' paraphrases the folder label used in the project records. ``$(+1)$'' denotes one further sequence marked invalid and set aside.}}{18}{table.3.3}%
-\contentsline {table}{\numberline {3.4}{\ignorespaces Composition of the dominant-wrist modelling dataset.}}{24}{table.3.4}%
-\contentsline {table}{\numberline {3.5}{\ignorespaces Data-quality indicators for the dataset.}}{25}{table.3.5}%
+\contentsline {table}{\numberline {3.1}{\ignorespaces Activity classes in the modelling dataset. Descriptions are taken from the 32-step assembly protocol. ``Typ.\ dur.'' is the range of mean coded-segment durations across sessions 1--3; for \texttt {screw\_tightening} it covers both the tightening and the merged loosening segments. ``Win.'' is the number of two-second windows per class in the final dominant-wrist dataset (Section~\ref {sec:stats}).}}{31}{table.3.1}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces Body placements: data recorded during acquisition versus data used as model input in the final pipeline. Only the dominant-wrist inertial and acoustic streams reach the fusion models.}}{34}{table.3.2}%
+\contentsline {table}{\numberline {3.3}{\ignorespaces Data-acquisition sessions. ``$(+1)$'' denotes one further sequence marked invalid and set aside. Sessions 4--6 consist of longer bouts of individual activities instead of repetitions of the full sequence.}}{35}{table.3.3}%
+\contentsline {table}{\numberline {3.4}{\ignorespaces Composition of the dominant-wrist modelling dataset.}}{41}{table.3.4}%
+\contentsline {table}{\numberline {3.5}{\ignorespaces Data-quality indicators for the dataset.}}{43}{table.3.5}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Overview of the evaluated models.}}{28}{table.4.1}%
-\contentsline {table}{\numberline {4.2}{\ignorespaces Input representations of the two modalities.}}{30}{table.4.2}%
-\contentsline {table}{\numberline {4.3}{\ignorespaces Architecture of the single-modality models. All convolutional and dense layers except the output use ReLU activations.}}{33}{table.4.3}%
-\contentsline {table}{\numberline {4.4}{\ignorespaces Illustrative example of global and per-class decision-level fusion for a \texttt {measuring} window. The values are chosen for illustration and are not taken from the experiments.}}{36}{table.4.4}%
-\contentsline {table}{\numberline {4.5}{\ignorespaces Hand-crafted features of the classical baseline.}}{38}{table.4.5}%
-\contentsline {table}{\numberline {4.6}{\ignorespaces Standard and deployment-oriented (small) model variants. Parameter counts refer to the nine-class output layer.}}{39}{table.4.6}%
-\contentsline {table}{\numberline {4.7}{\ignorespaces Training settings shared by all neural network models.}}{40}{table.4.7}%
-\contentsline {table}{\numberline {4.8}{\ignorespaces Firmware variants for on-device inference. The tensor arena is the fixed memory block that holds the intermediate results of a network.}}{41}{table.4.8}%
-\contentsline {table}{\numberline {4.9}{\ignorespaces Values embedded in the firmware in addition to the model weights.}}{43}{table.4.9}%
-\contentsline {table}{\numberline {4.10}{\ignorespaces Training, validation and discarded windows per class after the grouped split.}}{47}{table.4.10}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Overview of the evaluated models.}}{46}{table.4.1}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Input representations of the two modalities.}}{48}{table.4.2}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Architecture of the single-modality models. All convolutional and dense layers except the output use ReLU activations.}}{50}{table.4.3}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Illustrative example of global and per-class decision-level fusion for a \texttt {measuring} window. The values are chosen for illustration and are not taken from the experiments.}}{53}{table.4.4}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Hand-crafted features of the classical baseline.}}{55}{table.4.5}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces Standard and deployment-oriented (small) model variants. Parameter counts refer to the nine-class output layer.}}{57}{table.4.6}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces Training settings shared by all neural network models.}}{57}{table.4.7}%
+\contentsline {table}{\numberline {4.8}{\ignorespaces Firmware variants for on-device inference. The tensor arena is the fixed memory block that holds the intermediate results of a network.}}{59}{table.4.8}%
+\contentsline {table}{\numberline {4.9}{\ignorespaces Values embedded in the firmware in addition to the model weights.}}{60}{table.4.9}%
+\contentsline {table}{\numberline {4.10}{\ignorespaces Training, validation and discarded windows per class after the grouped split.}}{65}{table.4.10}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

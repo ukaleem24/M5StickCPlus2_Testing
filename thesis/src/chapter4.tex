@@ -82,15 +82,20 @@ shape of a hammer strike in the acceleration or the frequency content of a
 screwdriver in the spectrogram, and they need comparatively few parameters
 because the same small filters are applied across the whole window. For these
 reasons, CNNs are among the most widely used architectures in wearable activity
-recognition and in embedded audio classification {[}CITATION{]}. Recurrent
-layers, which process a sequence step by step, can capture the temporal order of
-a signal more explicitly but are more expensive to execute {[}CITATION{]}. They
-are therefore included only as an optional pooling stage of the audio model, so
+recognition and in embedded audio classification~\cite{kumar2024har,
+tao2018worker, zhou2025efficient}~{[}CITATION: keyword spotting on
+microcontrollers{]}. Recurrent
+layers can capture the temporal order of a signal more explicitly. Small
+recurrent models can run on microcontrollers~\cite{zhou2025efficient}, but they
+process the time steps one after the other and use operations that are less
+well supported there, as discussed in Section~\ref{sec:sota-edge}. They are
+therefore included only as an optional pooling stage of the audio model, so
 that their benefit can be measured against their cost. The three fusion
 strategies cover the three stages at which modalities are commonly combined in
-multimodal learning {[}CITATION{]}. The random forest, finally, is a standard
-reference method in activity recognition that performs well on small datasets
-and requires little tuning {[}CITATION{]}.
+multimodal learning~\cite{alamin2019action}. The random forest, finally, is a
+standard reference method in activity recognition that performs well on small
+datasets and requires little tuning~\cite{chatterjee2020laso,
+koch2024recognition}.
 
 All experiments use the dominant-wrist dataset described in
 Chapter~\ref{ch:data}, with 2565 paired windows across nine activity classes. The
@@ -193,7 +198,8 @@ Audio & 32\,000 samples at 16\,kHz & $198 \times 40$ log-mel & per mel band, tra
 The inertial model is a one-dimensional convolutional neural network (1D CNN)
 that convolves along the time axis of the window. 1D CNNs are a common choice for
 wearable activity recognition because they learn local motion patterns directly
-from the raw signal and remain small enough for embedded use {[}CITATION{]}.
+from the raw signal and remain small enough for embedded
+use~\cite{tao2018worker, alamin2019action, zhou2025efficient}.
 
 The network has two convolutional blocks. The first block applies 64 filters with
 a kernel size of 5, followed by batch normalisation and max pooling with a factor
@@ -208,7 +214,8 @@ for the embedding-level fusion described in Section~\ref{sec:embedding-fusion}.
 \label{sec:audio-model}
 
 The audio model treats the log-mel spectrogram as a single-channel image and
-processes it with a two-dimensional CNN {[}CITATION{]}. It has two convolutional
+processes it with a two-dimensional CNN, as is common for sound
+classification~\cite{koch2024recognition}. It has two convolutional
 blocks with 32 and 64 filters of size $3 \times 3$, each followed by batch
 normalisation and $2 \times 2$ max pooling. The resulting feature map has a size
 of $49 \times 10 \times 64$ (time $\times$ frequency $\times$ channels).
@@ -322,7 +329,7 @@ layers except the output use ReLU activations.}
 \label{sec:fusion}
 
 The three fusion strategies differ in the point along the processing chain at
-which the two modalities are combined {[}CITATION{]}.
+which the two modalities are combined~\cite{alamin2019action}.
 Figure~\ref{fig:fusion-overview} gives an overview.
 
 \begin{figure}[htbp]
@@ -426,7 +433,7 @@ backbone has already learned.
 \label{sec:decision-fusion}
 
 Decision-level fusion combines the predictions of the two independently trained
-models {[}CITATION{]}. Both models end in a softmax layer, which outputs one value
+models~\cite{alamin2019action}. Both models end in a softmax layer, which outputs one value
 between 0 and 1 for each of the nine classes, with all nine values summing to 1.
 These values can be read as the confidence of the model that the window belongs to
 the respective class. For a window $x$, let $p^{\mathrm{IMU}}_c(x)$ denote the
@@ -575,7 +582,7 @@ feature level.
 A random forest with 300 trees is trained on these vectors, with balanced class
 weights to account for the class imbalance {[}CITATION{]}. Random forests need no feature scaling and give robust results on small
 tabular datasets, which makes them a common reference point in activity
-recognition {[}CITATION{]}.
+recognition~\cite{chatterjee2020laso, koch2024recognition}.
 
 \begin{table}[htbp]
 \centering
@@ -683,7 +690,7 @@ backend and had to be adapted. The short-time Fourier transform used for the
 spectrograms was moved to the CPU, and the fused recurrent kernel of the GRU layer
 was replaced by an unrolled implementation. Both changes affect only where and how
 the computation is executed, not its result. Data preparation used NumPy, pandas
-and librosa {[}CITATION{]}, and the classical baseline
+and librosa~\cite{mcfee2015librosa}, and the classical baseline
 used scikit-learn {[}CITATION{]}.
 
 \subsection{Training Settings}
@@ -758,7 +765,8 @@ ESP32-PICO-V3-02, a dual-core processor clocked at up to 240\,MHz with 520\,KB o
 on-chip SRAM. Only part of this memory is available to the application, because
 the Arduino framework and the device libraries reserve their own share. The
 firmware was developed with PlatformIO and the Arduino framework. Neural network
-inference uses TensorFlow Lite for Microcontrollers {[}CITATION{]}, a version of
+inference uses TensorFlow Lite for Microcontrollers~\cite{david2021tflm}, a
+version of
 TensorFlow Lite designed for devices without an operating system and without
 dynamic memory allocation. The FFT for the audio features is computed with the
 arduinoFFT library {[}CITATION{]}.
@@ -802,7 +810,7 @@ memory block that holds the intermediate results of a network.}
 
 The trained Keras models store their weights as 32-bit floating-point numbers. For
 the microcontroller they are converted into the TensorFlow Lite format and
-quantized to 8-bit integers {[}CITATION{]}. In this form, each value is
+quantized to 8-bit integers~\cite{zhou2025efficient}. In this form, each value is
 represented by an integer $q$ between $-128$ and $127$, and the original real
 value $r$ is recovered as
 \begin{equation}
@@ -997,7 +1005,8 @@ As described in Section~\ref{sec:windowing}, the windows were created with
 50\,\% overlap, so neighbouring windows share half of their samples. A random split would place such
 neighbours on both sides of the train/validation boundary. The model would then
 be evaluated on data that it had partly seen during training, and the measured
-accuracy would overestimate its performance on new data {[}CITATION{]}.
+accuracy would overestimate its performance on new
+data~\cite{hammerla2015lets}.
 
 To prevent this, the windows are first grouped into activity instances.
 Consecutive windows with the same label belong to the same group as long as their
@@ -1106,7 +1115,8 @@ Overall accuracy, the share of correctly classified validation windows, is used 
 the main measure for comparing the models. Because the classes are imbalanced,
 accuracy alone can hide poor performance on small classes. Precision, recall and
 F1-score are therefore also reported for each class, together with the
-macro-averaged F1-score, which gives every class the same weight {[}CITATION{]}. Confusion matrices are used to identify which activities are mistaken
+macro-averaged F1-score, which gives every class the same
+weight~\cite{bulling2014tutorial}. Confusion matrices are used to identify which activities are mistaken
 for one another. Unless stated otherwise, all results are reported on the
 validation set of the grouped split and come from a single training run per
 model.

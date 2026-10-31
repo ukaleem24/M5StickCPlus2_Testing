@@ -1,0 +1,835 @@
+% Chapter 2 -- State of the Art (v3, 2026-10-31: author names only for Ward
+% et al.; figures 2.1-2.3 and tables 2.2-2.3 added).
+% [VERIFY: ...] marks statements taken from abstracts of papers whose full text
+% is not yet in the Literature folder. {[}CITATION{]} marks missing sources.
+
+\label{ch:background}
+
+\tikzset{
+  blk/.style={draw, rounded corners=2pt, align=center, inner sep=4pt,
+              minimum height=8mm, font=\footnotesize},
+  grp/.style={draw, dashed, rounded corners=3pt, inner sep=6pt},
+  flow/.style={-{Latex[length=2mm]}, thick},
+}
+
+This chapter gives an overview of the current state of research and practice
+for recognising assembly activities with sensors worn on the wrist. It starts
+with the application itself and with the way industry monitors manual assembly
+today. After that, it looks at the two sensor types used in this thesis, the
+inertial measurement unit and the microphone, and at the ways their data can be
+combined. The last sections deal with running such models on small embedded
+devices and with the question of how results in this field are evaluated. The
+chapter ends with a comparison of the most closely related work and the
+research gap that follows from it.
+
+%------------------------------------------------------------------------------
+\section{Activity Recognition in Manual Assembly}
+\label{sec:sota-assembly}
+
+Even in highly automated factories, a large part of assembly is still done by
+hand~\cite{alamin2019action}. If a system knows which step a worker is
+currently performing, it can be used in several ways. It can show new workers
+the right instruction at the right time, detect a missing or repeated step for
+quality assurance, or measure cycle times without a manual time
+study~\cite{stiefmeier2008wearable, alamin2019action}. The same information is
+also needed for ergonomic assessments and for human-robot collaboration, where
+the robot has to know what its human partner is doing~\cite{berg2018action}.
+An overview of these applications in production and logistics is given
+in~\cite{reining2019har}.
+
+Assembly activities are different from the activities that most activity
+recognition research deals with, such as walking, sitting or climbing stairs.
+They are short, often only a few seconds long, they are done mainly with the
+hands, and many of them involve a tool. Different activities can look very
+similar in terms of arm movement, for example turning a screwdriver and turning
+a wrench. In between the activities of interest there are longer phases of
+reaching, holding and waiting that do not belong to any class. In the
+literature these phases are called the null class~\cite{bulling2014tutorial}.
+
+There are two main ways to recognise such activities, which are shown in
+Figure~\ref{fig:sota-sensing}. The first uses cameras that are mounted at the
+workstation and record RGB video, depth images or the skeleton of the worker. Deep learning models trained on such data can recognise
+the individual steps of an assembly task quite reliably, for example on the
+public HA4M dataset of a gear train assembly~\cite{matin2024hybrid,
+bonyani2026multimodal}. However, cameras need a clear view of the hands, which
+is often blocked by the workpiece or by the worker's own body. They are also
+sensitive to viewpoint and lighting~\cite{alamin2019action}, and filming
+workers continuously raises privacy concerns. The second way uses sensors that are worn
+on the body. They move with the worker, need no free line of sight and measure
+the movement directly where it happens. Their disadvantages are that the signal
+depends on how the sensor is worn, that the battery is small, and that the data
+has to be sent away or processed on a very small device. Large wearable
+datasets from industrial settings are still rare. One recent example is
+OpenPack, which contains more than 50 hours of packaging work recorded with
+wrist-worn and body-worn sensors, depth cameras and barcode
+scanners~\cite{yoshimura2024openpack}.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[
+  leaf/.style={blk, text width=2.1cm, minimum height=13mm},
+  note/.style={align=left, font=\scriptsize, text width=5.3cm, anchor=north},
+]
+  \node[blk, text width=4.6cm] (root) at (0,0)
+    {Monitoring of manual assembly};
+  \node[blk, text width=3.6cm] (stat) at (-3.9,-1.6)
+    {\textbf{Stationary}\\installed at the workstation};
+  \node[blk, text width=3.6cm] (body) at (2.6,-1.6)
+    {\textbf{Body-worn}\\moves with the worker};
+  \draw[flow] (root.south) -- ++(0,-0.25) -| (stat.north);
+  \draw[flow] (root.south) -- ++(0,-0.25) -| (body.north);
+
+  \node[leaf] (cam)  at (-5.2,-3.5) {\textbf{Cameras}\\RGB, depth,\\skeleton};
+  \node[leaf] (tool) at (-2.6,-3.5) {\textbf{Smart tools}\\screwdrivers,\\hand scanners};
+  \node[leaf] (imu)  at (0.0,-3.5)  {\textbf{IMU}\\wrist or\\forearm};
+  \node[leaf] (mic)  at (2.6,-3.5)  {\textbf{Microphone}\\wrist or\\body};
+  \node[leaf] (emg)  at (5.2,-3.5)  {\textbf{EMG}\\forearm\\armband};
+  \foreach \n in {cam,tool} \draw[flow] (stat.south) -- ++(0,-0.3) -| (\n.north);
+  \foreach \n in {imu,mic,emg} \draw[flow] (body.south) -- ++(0,-0.3) -| (\n.north);
+
+  \node[grp, fit=(imu)(mic), inner sep=4pt,
+        label={[font=\scriptsize]below:used in this thesis (on the wrist)}] {};
+
+  \node[note] at (-3.6,-5.0)
+    {$+$ no device on the worker\\
+     $-$ needs a free view of the hands, privacy concerns\\
+     $-$ only connected tools are recorded};
+  \node[note] at (2.6,-5.0)
+    {$+$ no line of sight needed, works with any tool\\
+     $-$ signal depends on how the sensor is worn\\
+     $-$ small battery, small computing device};
+\end{tikzpicture}
+\caption{Approaches for monitoring manual assembly. The dashed box marks the
+two sensor types used in this thesis.}
+\label{fig:sota-sensing}
+\end{figure}
+
+%------------------------------------------------------------------------------
+\section{Activity Monitoring in Industrial Practice}
+\label{sec:sota-industry}
+
+The idea of using wearable sensors on the assembly line is not new. Already in
+2008, a body-worn system for recognising worker activities was tested in two
+case studies with the car manufacturer \v{S}koda~\cite{stiefmeier2008wearable}.
+One case study dealt with the
+training of new assembly workers and the other with quality assurance on the
+assembly line. However,
+such research prototypes have not led to general activity recognition products.
+The systems that are used in factories today record clearly defined events of
+special tools and devices instead. Table~\ref{tab:sota-industry} lists some
+typical examples.
+
+\begin{table}[!ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{Provider} & \textbf{Device} & \textbf{What is recorded} \\
+\hline
+ProGlove~\cite{proglove2026automotive, proglove2023bmw}
+  & Barcode scanner worn on the back of the hand
+  & Every scan of a part with a time stamp. Scan and motion data are used to
+    analyse process times, bottlenecks and ergonomics. Used at BMW and
+    Volkswagen. \\
+\hline
+Fraunhofer IIS with BMW~\cite{fraunhofer2017tool}
+  & Sensor module attached to an electric screwdriver
+  & Rotational speed, acceleration and direction of the tool, used to check
+    that every screw of a station was tightened. Tested at BMW Regensburg. \\
+\hline
+Bossard, SAP Digital Manufacturing~\cite{bossard2026smarttool,
+  sap2026intelligenttools}
+  & Connected screwdrivers and torque tools
+  & The tool gets the next work step from the production system and reports
+    torque, angle and result of every screw joint. \\
+\hline
+Ergonomics wearables, e.g.\ LifeBooster~\cite{nsc2025lifebooster}
+  & Inertial sensors worn on the upper body and arms
+  & Posture and movement over a whole shift, used to estimate the risk of
+    musculoskeletal disorders. \\
+\hline
+\end{tabularx}
+\caption[Commercial systems that monitor manual work in production]{Examples
+of commercial systems that monitor manual work in production. Information as
+given by the providers.}
+\label{tab:sota-industry}
+\end{table}
+
+A well-known example are the wearable barcode scanners by
+ProGlove~\cite{proglove2026automotive, proglove2023bmw}. The scanner
+is worn on the back of the hand, so the worker no longer has to pick up and put
+down a hand scanner for every part. Car manufacturers such as BMW and
+Volkswagen use these scanners in production and logistics, and the related
+software analyses scan and motion data to find long process times and
+ergonomic problems~\cite{proglove2026automotive, proglove2023bmw}. In the
+assembly itself, screwing is monitored most closely, because a missing or
+loose screw is a typical quality problem. Fraunhofer IIS developed a sensor
+module that can be attached to an existing electric
+screwdriver~\cite{fraunhofer2017tool}. From the
+rotational speed, acceleration and direction of the tool, the module detects
+each screwing operation. In a pilot project at the BMW plant in Regensburg, the
+worker was told after each car whether all screws had been
+tightened~\cite{fraunhofer2017tool}. Connected screwdrivers, offered for
+example by Bossard and integrated into manufacturing software such as SAP
+Digital Manufacturing, go one step further. They receive the required torque
+from the production system and save the result of every screw
+joint~\cite{bossard2026smarttool, sap2026intelligenttools}. A different group
+of products uses inertial sensors on the body to assess ergonomic risks over a
+whole shift. A report of the U.S.\ Government Accountability Office points out,
+however, that the evidence for their benefit comes mostly from the vendors
+themselves~\cite{gao2024wearables}.
+
+All of these systems have one thing in common. They either record events that
+the tool or device itself produces, such as a scan or a finished screw joint,
+or they measure posture without knowing which task is being done. Work with
+tools that are not connected, such as a hammer, a manual screwdriver, a file or
+a tape measure, is not recorded at all, and every new tool would have to be
+equipped and integrated separately. A sensor on the worker's wrist could, in
+principle, cover all hand tools at once. This is the starting point for the
+research described in the following sections.
+
+%------------------------------------------------------------------------------
+\section{Wrist-Worn Inertial Sensing}
+\label{sec:sota-imu}
+
+Inertial measurement units (IMUs), which combine a three-axis accelerometer and
+a three-axis gyroscope, are the most common sensors for wearable activity
+recognition. They are small, cheap and energy-efficient, and they work without
+a line of sight~\cite{bulling2014tutorial, kumar2024har}. For assembly work
+the wrist is an obvious position. It is close to the hands, it moves with every
+tool operation, and most people are used to wearing a watch there. A smartwatch
+can tell apart 25 different hand activities, but only if it is worn on the arm
+that does the work~\cite{laput2019sensing}. In one of the first industrial
+studies, a single IMU was worn on the wrist of workers on an assembly
+line~\cite{koskimaki2009activity}. Its two-second windows of acceleration and
+angular velocity were classified with a $k$-nearest-neighbour classifier, and a
+state machine detected when a work task was finished. The detected start and
+end times differed from the true ones by about one
+second on average~\cite{koskimaki2009activity}. Other assembly studies use
+armbands on the forearm that also measure muscle activity with
+electromyography (EMG)~\cite{tao2018worker, alamin2019action}. The forearm is
+close to the wrist, but an armband does not follow the rotation of the hand in
+the same way, so the two positions are not equivalent.
+
+The basic processing steps for inertial data are well established. The
+continuous signal is cut into windows of fixed length, usually one to a few
+seconds long and overlapping by 50\,\%, and each window gets one activity
+label~\cite{bulling2014tutorial, banos2014window}. Older systems calculated
+hand-crafted features for each window, such as mean, variance or frequency
+content, and classified them with methods like $k$-nearest neighbours or hidden
+Markov models~\cite{koskimaki2009activity, ward2006activity}. Random forests,
+which combine the votes of many decision trees, are still a common baseline for
+such features~\cite{chatterjee2020laso, koch2024recognition}. Today, neural
+networks usually learn the features directly from the raw signal, and they often
+do better. In one comparison reported in~\cite{koch2024recognition}, a simple
+CNN on smartphone accelerometer data reached 92.7\,\% accuracy, compared with
+89.1\,\% for a random forest.
+One-dimensional convolutional neural networks (CNNs) move small learned filters
+along the time axis and detect typical motion patterns~\cite{tao2018worker,
+alamin2019action}. If recurrent layers are added after the convolutions, as in
+the DeepConvLSTM architecture, the network can also learn in which order these
+patterns occur~\cite{zhou2025efficient}~{[}CITATION: Ord\'o\~nez and Roggen
+2016{]}. Attention-based models go further and learn which parts of the signal
+are most important~\cite{gao2023mmtsa}. Recent surveys give an overview of
+these model types~\cite{kumar2024har}.
+
+For assembly activities that differ clearly in their movement, the reported
+results are good. In one study, a CNN recognised six assembly actions, among
+them hammering, using a screwdriver and using a wrench, with an accuracy of
+98\,\% when part of each worker's data was used for training, and 87\,\% when
+the test worker was not part of the training data at
+all~\cite{tao2018worker}~[VERIFY: figures against full text]. However, two
+problems remain. First, the signal depends on how the device is worn, so a model
+trained with one orientation of the device may fail with another
+{[}CITATION: sensor orientation and placement in wearable HAR{]}. Second, the
+movement of the wrist does not always show what the hand is actually doing.
+Turning a screwdriver, tightening a nut with a wrench and turning a knob all
+lead to a similar rotation of the forearm. Activities that mainly differ in the
+tool or the material are therefore hard to separate by movement alone.
+One way to partly solve this is to read the accelerometer of a smartwatch 4000
+times per second instead of the usual 50 to 100 times. In this way the sensor
+also picks up the small vibrations that a tool or object
+transfers to the hand~\cite{laput2019sensing}. This is already a step towards
+sound.
+
+%------------------------------------------------------------------------------
+\section{Sound as a Cue for Hand and Tool Activity}
+\label{sec:sota-audio}
+
+Most tools make a typical sound. A saw makes a regular scraping noise, a hammer
+short loud impacts, and a drill or cordless screwdriver the humming of its
+motor. A microphone close to the hand records these sounds, together with the
+background noise of the workshop. The idea of combining a microphone and an
+accelerometer on the arm for this purpose goes back to the
+2000s~\cite{lukowicz2004recognizing}. In the best-known study, Ward et~al.\
+recognised nine activities of an assembly task in a wood workshop, among them
+sawing, hammering and drilling~\cite{ward2006activity}. The user wore
+microphones and accelerometers on the arms. The system compared the loudness of
+two microphones at different body positions to find the parts of the recording
+that contained an activity. The sound was then classified with linear
+discriminant analysis, the acceleration with hidden Markov models, and the
+results of both were combined. When the system was trained with data of the
+same user, it reached a recall of 78\,\% and a precision of 74\,\%. For a new
+user these values dropped to 66\,\% and 63\,\%~\cite{ward2006activity}. The
+study showed that sound and wrist motion contain different and complementary
+information about tool use. It also showed how much harder the task becomes
+when the system has to work for people it has not seen before.
+Figure~\ref{fig:sota-timeline} shows how this line of research has developed
+since then.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[
+  ind/.style={circle, fill, inner sep=2pt},
+  daily/.style={circle, draw, thick, fill=white, inner sep=1.7pt},
+  mcu/.style={rectangle, fill, inner sep=2.3pt},
+]
+  \newcommand{\tlrow}[4]{%
+    \node[anchor=east, font=\footnotesize] at (0,-#1*0.56) {#2};
+    \node[anchor=west, font=\footnotesize, text width=12.6cm]
+      at (0.75,-#1*0.56) {#4};
+    \node[#3] at (0.4,-#1*0.56) {};}
+  \draw[thick] (0.4,0.3) -- (0.4,-3*0.56);
+  \draw[thick, dashed] (0.4,-3*0.56) -- (0.4,-4*0.56);
+  \draw[thick, -{Latex[length=2mm]}] (0.4,-4*0.56) -- (0.4,-14.6*0.56);
+  \tlrow{0}{2004}{ind}{Microphone and accelerometer on the arm for workshop
+    activities~\cite{lukowicz2004recognizing}}
+  \tlrow{1}{2006}{ind}{Sound and arm motion for an assembly task in a wood
+    workshop~\cite{ward2006activity}}
+  \tlrow{2}{2008}{ind}{Body-worn activity tracking in car manufacturing at
+    \v{S}koda~\cite{stiefmeier2008wearable}}
+  \tlrow{3}{2009}{ind}{Single wrist-worn IMU on an industrial assembly
+    line~\cite{koskimaki2009activity}}
+  \tlrow{4}{2018}{ind}{Forearm IMU and EMG with a CNN for six assembly
+    actions~\cite{tao2018worker}}
+  \tlrow{5}{2019}{ind}{Fusion levels compared for an assembly step (IMU, EMG,
+    camera)~\cite{alamin2019action}}
+  \tlrow{6}{2019}{daily}{Smartwatch accelerometer at 4\,kHz picks up hand
+    vibrations~\cite{laput2019sensing}}
+  \tlrow{7}{2020}{ind}{Workshop audio used to label wrist IMU data
+    automatically~\cite{chatterjee2020laso}}
+  \tlrow{8}{2022}{daily}{Smartwatch audio and motion, three fusion strategies
+    compared~\cite{bhattacharya2022leveraging}}
+  \tlrow{9}{2022}{daily}{Smartwatch audio reduced to 1\,kHz, IMU as
+    trigger~\cite{mollyn2022samosa}}
+  \tlrow{10}{2024}{ind}{OpenPack dataset with wrist IMUs in industrial packaging
+    work~\cite{yoshimura2024openpack}}
+  \tlrow{11}{2024}{daily}{Ambient audio and vibration in a smart
+    home~\cite{koch2024recognition}}
+  \tlrow{12}{2024}{mcu}{Camera and IMU fused on a microcontroller
+    board~\cite{nakabayashi2024multimodal}}
+  \tlrow{13}{2025}{mcu}{Quantised DeepConvLSTM for IMU data on a
+    microcontroller~\cite{zhou2025efficient}}
+  \tlrow{14}{2026}{ind}{Smartwatch audio and motion for a furniture assembly
+    (preprint)~\cite{mahfuz2026proactive}}
+  % legend
+  \node[ind] at (0.9,-15.7*0.56) {};
+  \node[anchor=west, font=\scriptsize] at (1.05,-15.7*0.56)
+    {assembly, workshop or industry};
+  \node[daily] at (5.6,-15.7*0.56) {};
+  \node[anchor=west, font=\scriptsize] at (5.75,-15.7*0.56) {daily life};
+  \node[mcu] at (7.9,-15.7*0.56) {};
+  \node[anchor=west, font=\scriptsize] at (8.05,-15.7*0.56)
+    {focus on microcontrollers};
+\end{tikzpicture}
+\caption{Development of activity recognition with wrist-worn and body-worn
+motion and sound sensors. The dashed part of the time axis marks a gap of
+several years without closely related work.}
+\label{fig:sota-timeline}
+\end{figure}
+
+Since smartwatches contain both an IMU and a microphone, this combination has
+received new attention, although mostly for activities of daily life. In one
+study, sound and motion were recorded with ordinary smartwatches from 15
+participants in their own homes, and 23 activities such as cooking, writing and
+cleaning were recognised. Several models and three fusion strategies were
+compared, and the combination of both sensors worked better than each sensor
+alone. A second study under real everyday conditions showed,
+however, that recognition becomes much more difficult outside a controlled
+setting~\cite{bhattacharya2022leveraging}~[VERIFY: best fusion strategy in full
+text]. The SAMoSA system uses the IMU as a trigger and only
+switches on the microphone when movement is detected. In addition, the audio is
+recorded with a sampling rate of only 1\,kHz, which saves energy and makes
+speech impossible to understand. The system recognised 26 activities in four
+indoor environments with an accuracy of 92.2\,\%, and reducing the audio
+sampling rate from 16\,kHz to 1\,kHz hardly changed the
+result~\cite{mollyn2022samosa}. A recent preprint uses audio and motion from a
+smartwatch to follow the steps of a furniture assembly, including screwing and
+drilling, and runs the system on edge devices without a cloud
+connection~\cite{mahfuz2026proactive}~[VERIFY: sensor setup, preprint].
+
+Sound alone can also be a strong signal. In a smart home study with 25
+activities and 14 participants, microphones placed in the rooms reached up to
+about 85\,\% accuracy, vibration sensors up to about 80\,\%, and the best
+results were achieved with audio or with audio and vibration
+together~\cite{koch2024recognition}. As in many audio classification systems,
+the sound was first converted into a mel spectrogram, an image-like
+representation of how the energy in different frequency bands changes over
+time, and then classified with a residual network, a deep
+CNN~\cite{koch2024recognition}. On construction sites, combining sound and
+motion data of construction machines improved the accuracy by up to 25\,\%
+compared with a single sensor~\cite{sherafat2019construction}. Sound can also
+help indirectly. In the LASO system, participants wore a smartwatch for motion
+data while a smartphone in their pocket recorded audio during workshop
+activities such as sawing and hammering. A pretrained audio classifier then
+labelled the motion data automatically, and the audio was deleted
+afterwards~\cite{chatterjee2020laso}.
+
+The last example shows the main concern about microphones at the workplace.
+Audio can contain speech, and most workers will not accept being recorded all
+day. In Germany, the introduction of technical devices that can be used to
+monitor employees also requires the consent of the works council
+{[}CITATION: BetrVG \S\,87 (1) Nr.~6{]}. The approaches above deal with this
+problem in different ways. Audio is processed on the device and then
+deleted~\cite{chatterjee2020laso}, the sampling rate is reduced so far that
+speech cannot be understood~\cite{mollyn2022samosa}, or only features or
+recognised classes leave the device. Processing the data on the device itself
+is therefore not only a technical advantage but also important for the
+acceptance of such a system.
+
+%------------------------------------------------------------------------------
+\section{Fusion of Inertial and Acoustic Data}
+\label{sec:sota-fusion}
+
+IMU and audio data are quite different. A wrist IMU delivers between some tens
+and a few hundred samples per second, a microphone several thousand. The IMU
+signal is usually used as a time series with a few channels, while audio is
+mostly converted into a spectrogram, an image-like representation that shows
+how much energy each frequency band contains over time. Before the two signals
+can be combined, they also have to be aligned in time, for example by shifting
+them until their cross-correlation is highest~\cite{koch2024recognition}. The
+most important design decision is at which point in the processing chain the
+two signals are combined. Three levels are usually
+distinguished~\cite{alamin2019action}.
+\begin{itemize}
+  \item \textbf{Early fusion} (data-level fusion) combines the raw or
+        preprocessed signals into one input for a single model. This requires
+        that both signals are brought into a common format.
+  \item \textbf{Feature-level fusion} (embedding-level fusion) processes each
+        signal with its own encoder network and combines the resulting feature
+        vectors, called embeddings, before a common classifier.
+  \item \textbf{Late fusion} (decision-level fusion) trains a separate
+        classifier for each signal and combines their predicted probabilities,
+        for example by taking the average or a weighted sum.
+\end{itemize}
+In addition, some models use attention mechanisms that learn how much each
+signal should contribute. These hybrid approaches do not fit clearly into one
+of the three levels~\cite{gao2023mmtsa, nakabayashi2024multimodal}.
+
+Only a few studies compare these levels on the same data with the same sensors.
+One of them deals with one step of a 3D printer assembly, recorded with IMU and
+EMG armbands on both forearms and a Kinect camera~\cite{alamin2019action}. Five
+workers repeated the
+step ten times each. A separate CNN was trained for each sensor, and
+data-level, feature-level and score-level fusion were compared. A weighted
+score fusion, which gives each model more influence on the actions it
+recognises best, worked better than a simple average. For fine finger movements
+such as tightening a screw, the wearable sensors were more useful than the
+camera~\cite{alamin2019action}. In the smart home study with room microphones and
+vibration sensors described in Section~\ref{sec:sota-audio}, the data of several
+sensor nodes was either merged into one input or processed
+separately with the predictions combined afterwards. The separate processing
+was clearly better, with up to 85\,\% instead of 75\,\% for audio and 80\,\%
+instead of 50\,\% for vibration~\cite{koch2024recognition}. For smartwatch
+audio and motion, three fusion strategies were compared
+in~\cite{bhattacharya2022leveraging}, and the early work on assembly activities
+already tested several ways of combining the decisions of the sound and motion
+classifiers~\cite{ward2006activity}~[VERIFY: fusion methods in the full text].
+
+Several studies report that a simple combination does not always make good use
+of both signals. In late fusion, one signal can dominate the result while the
+other one hardly contributes, an effect called modality
+collapse~\cite{bonyani2026multimodal}. Possible solutions are to pretrain the
+encoder for each signal separately and fuse the features in several
+stages~\cite{choi2022multistage}, or to use contrastive pretraining, where the
+model learns that recordings of both signals from the same moment belong
+together. The latter also helps when only little labelled data is
+available~\cite{ouyang2022cosmo}. Attention can also be used to give the IMU
+more weight for activities with body movement and a second sensor more weight
+for activities without movement~\cite{nakabayashi2024multimodal}.
+
+The choice of fusion level also affects the computational cost. Early fusion
+needs only one network, but both signals have to fit into one common input
+format. Feature-level and late fusion keep a separate network for each signal,
+so memory and computing time increase. One way to reduce this cost is to
+convert the IMU signal into an image, so that the same network can process
+both signals~\cite{gao2023mmtsa}. No study was found that compares the fusion
+levels for audio and wrist motion and also reports how much memory and time
+each variant needs on the same embedded hardware.
+
+%------------------------------------------------------------------------------
+\section{Activity Recognition on Microcontrollers}
+\label{sec:sota-edge}
+
+The term edge device is used for very different hardware. Single-board
+computers such as the Raspberry Pi or the NVIDIA Jetson run a full Linux
+system and have several gigabytes of memory, and smartwatches and smartphones
+are similar in this respect. Microcontrollers are much smaller. They run
+without an operating system or with a small real-time system, have a few
+hundred kilobytes to a few megabytes of memory and run at some hundred
+megahertz. Compared with smartphones, they have about 100 to 1000 times less
+computing power, memory and energy~\cite{david2021tflm}.
+Figure~\ref{fig:sota-hardware} shows these hardware classes by their available
+memory, together with the devices used in related work. Running neural
+networks on such devices is called TinyML. The most widely used framework is
+TensorFlow Lite Micro. It executes a converted model using a fixed block of
+memory, the so-called tensor arena, which is reserved once at the start, and it
+only includes the operations that the model actually
+needs~\cite{david2021tflm}. To make the model smaller and to allow integer
+arithmetic, the weights and intermediate values are usually converted from
+32-bit floating-point numbers to 8-bit integers. This step is called
+quantisation. A small set of typical input examples is used to find out the
+value range of each layer~\cite{zhou2025efficient}.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[
+  bar/.style={draw, fill=black!12},
+  dev/.style={circle, fill, inner sep=1.6pt},
+  lab/.style={font=\scriptsize, align=center, inner sep=1pt},
+  tier/.style={font=\footnotesize, anchor=east, align=right},
+]
+  % x = 1.6 cm per decade, x = 0 at 100 KB
+  % tiers
+  \node[tier] at (-0.25,0)    {Microcontroller};
+  \node[tier] at (-0.25,-1.0) {Smartwatch,\\smartphone};
+  \node[tier] at (-0.25,-2.0) {Single-board\\computer};
+  \node[tier] at (-0.25,-3.0) {Server,\\workstation};
+  \draw[bar] (0,-0.17)    rectangle (3.05,0.17);
+  \draw[bar] (5.92,-1.17) rectangle (8.13,-0.83);
+  \draw[bar] (6.4,-2.17)  rectangle (7.85,-1.83);
+  \draw[bar] (8.33,-3.17) rectangle (9.6,-2.83);
+  \draw[-{Latex[length=2mm]}, black!50] (9.6,-3) -- (10.1,-3);
+  % microcontroller devices
+  \node[dev] (nano) at (0.65,0) {};
+  \node[lab, anchor=south east] at (0.8,0.2) {Arduino Nano 33\\\cite{zhou2025efficient}};
+  \node[dev] (spr) at (2.08,0) {};
+  \node[lab, anchor=south west] at (1.95,0.2) {Sony Spresense\\\cite{nakabayashi2024multimodal}};
+  \draw[line width=2.2pt] (1.15,0) -- (2.24,0);
+  \node[lab, anchor=north, font=\scriptsize\bfseries] at (1.7,-0.22)
+    {M5StickC Plus2 (this thesis)};
+  % smartwatch
+  \node[lab, anchor=south] at (7.0,-0.8)
+    {audio and motion studies~\cite{mollyn2022samosa, bhattacharya2022leveraging}};
+  % single-board computers
+  \node[dev] at (6.4,-2) {};
+  \node[lab, anchor=east] at (6.25,-2) {Raspberry Pi 3~\cite{chatterjee2020laso}};
+  \node[dev] at (7.85,-2) {};
+  \node[lab, anchor=west] at (8.0,-2)
+    {Raspberry Pi 4B~\cite{gao2023mmtsa},\\Jetson TX2~\cite{ouyang2022cosmo}};
+  % server
+  \node[lab, anchor=east] at (8.2,-3) {training and offline evaluation};
+  % axis
+  \draw[-{Latex[length=2mm]}] (0,-3.7) -- (10.1,-3.7);
+  \foreach \x/\t in {0/100\,KB, 1.6/1\,MB, 3.2/10\,MB, 4.8/100\,MB,
+                     6.4/1\,GB, 8.0/10\,GB, 9.6/100\,GB} {
+    \draw (\x,-3.62) -- (\x,-3.78);
+    \node[font=\scriptsize, anchor=north] at (\x,-3.8) {\t};
+  }
+  \node[font=\footnotesize, anchor=north] at (5.0,-4.15)
+    {available working memory (RAM), logarithmic scale};
+\end{tikzpicture}
+\caption{Hardware classes for running activity recognition models, ordered by
+available working memory. Dots mark devices used in related work. The thick
+line marks the M5StickC Plus2 used in this thesis, from its 520\,KB of internal
+SRAM to an additional 2\,MB of external PSRAM. Memory ranges are typical values
+and not exact limits. Memory of the Arduino Nano 33 BLE Sense and the Jetson
+TX2 from the manufacturers' data sheets {[}CITATION{]}.}
+\label{fig:sota-hardware}
+\end{figure}
+
+For models that use only IMU data, this approach is well documented. In one
+example, a DeepConvLSTM was trained on the WISDM dataset, which contains
+accelerometer data from a smartphone in the trouser pocket, and ran on an
+Arduino Nano 33 BLE Sense microcontroller. Quantisation reduced the model size
+from 513\,KB to 137\,KB, while the accuracy dropped only from 98.2\,\% to about
+97\,\%. On the device, the model needed 29\,KB of RAM and 190\,KB of flash
+memory, and one prediction took 21\,ms~\cite{zhou2025efficient}. Multimodal
+models are rare on this kind of hardware. One example combines a chest-worn
+camera and an IMU with an attention mechanism on a Sony Spresense board with
+about 2\,MB of RAM and needs about 21\,ms per prediction. The model size,
+quantisation and memory usage are not reported,
+however~\cite{nakabayashi2024multimodal}. Many multimodal systems are only
+tested on single-board computers such as the Raspberry Pi or the NVIDIA
+Jetson~\cite{chatterjee2020laso, gao2023mmtsa, ouyang2022cosmo}.
+Table~\ref{tab:sota-deployment} summarises the resource figures that these
+studies report. It shows that the figures are often incomplete and that the
+models on single-board computers are several orders of magnitude larger than
+those on microcontrollers.
+
+\begin{table}[!ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.2cm}|}
+\hline
+\textbf{Device} & \textbf{Sensors} & \textbf{Model size} & \textbf{Memory used}
+  & \textbf{Time per prediction} \\
+\hline
+Arduino Nano 33 BLE Sense (MCU)~\cite{zhou2025efficient}
+  & Accelerometer & 137\,KB, 8-bit integer & 29\,KB RAM, 190\,KB flash & 21\,ms \\
+\hline
+Sony Spresense (MCU)~\cite{nakabayashi2024multimodal}
+  & Camera, IMU & not reported & not reported & about 21\,ms \\
+\hline
+Raspberry Pi 3 B (SBC)~\cite{chatterjee2020laso}
+  & IMU, audio & not reported & CPU and memory load shown, no model size
+  & slower than on a laptop$^{a}$ \\
+\hline
+Raspberry Pi 4B (SBC)~\cite{gao2023mmtsa}
+  & Video, accelerometer & 32.4 million parameters, floating point
+  & not reported & 5.8\,s for a 15\,s input \\
+\hline
+NVIDIA Jetson TX2 (SBC)~\cite{ouyang2022cosmo}
+  & Depth camera, IMU, radar & not reported & not reported
+  & below 0.4\,s for a 2\,s input \\
+\hline
+\end{tabularx}
+
+\vspace{1mm}
+{\footnotesize\raggedright
+MCU = microcontroller, SBC = single-board computer.
+$^{a}$~Execution time of the whole labelling process, not of a single prediction.\par}
+\caption{Resource figures reported for activity recognition on embedded
+hardware.}
+\label{tab:sota-deployment}
+\end{table}
+
+Which type of model is suitable for a microcontroller depends not only on its
+accuracy but also on its size and on the operations it needs.
+Table~\ref{tab:sota-models} gives an overview of the model types discussed in
+this chapter. Hand-crafted features with a random forest need very little
+memory, but the features have to be designed by hand for every
+sensor~\cite{chatterjee2020laso, koch2024recognition}. CNNs are the most common
+compromise. They learn the features themselves, need few parameters because the
+same small filters are applied across the whole window, and consist of
+operations that TensorFlow Lite Micro supports well~\cite{david2021tflm,
+zhou2025efficient}. Recurrent layers such as LSTM or GRU additionally capture
+the order of patterns in a window, and they do not have to be large. In a direct
+comparison on a microcontroller, a DeepConvLSTM with about 130\,000 parameters
+was both more accurate (98.2\,\%) and smaller after quantisation (137\,KB) than
+a one-dimensional CNN with about 378\,000 parameters (96.9\,\%,
+382\,KB)~\cite{zhou2025efficient}. However, recurrent layers have to process the
+time steps one after the other, and TensorFlow Lite Micro supports only a subset
+of the operations of the full framework~\cite{david2021tflm}, so recurrent layers
+often have to be rewritten into simpler operations before they can run on the
+device {[}CITATION{]}. Their benefit therefore has to be weighed against their
+cost in each case. Attention-based and transformer models, finally, are mainly
+used for multimodal recognition with video~\cite{gao2023mmtsa,
+bonyani2026multimodal}. They are much larger. MMTSA, for example, has about 32
+million parameters and needs 5.8\,s per input on a Raspberry Pi, which is far
+beyond the limits of a microcontroller~\cite{gao2023mmtsa}.
+
+\begin{table}[!ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{3.0cm}|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.0cm}|}
+\hline
+\textbf{Model type} & \textbf{Typical input} & \textbf{Suitability for a microcontroller}
+  & \textbf{Examples} \\
+\hline
+Hand-crafted features with a random forest
+  & statistics per window, any sensor
+  & very small, but features must be designed by hand
+  & \cite{chatterjee2020laso, koch2024recognition} \\
+\hline
+1D CNN
+  & raw IMU windows
+  & small, simple operations that are well supported
+  & \cite{tao2018worker, alamin2019action, zhou2025efficient} \\
+\hline
+2D CNN on a (mel) spectrogram
+  & audio
+  & small to medium, but the spectrogram has to be computed on the device
+  & \cite{koch2024recognition} \\
+\hline
+CNN with recurrent layers (e.g.\ DeepConvLSTM)
+  & raw IMU windows
+  & can be small, but processes time steps one after the other and needs
+    operations with limited support
+  & \cite{zhou2025efficient} \\
+\hline
+Attention and transformer models
+  & video combined with IMU
+  & very large (e.g.\ 32 million parameters~\cite{gao2023mmtsa}), so far only
+    on single-board computers or larger
+  & \cite{gao2023mmtsa, bonyani2026multimodal} \\
+\hline
+\end{tabularx}
+\caption{Model types for activity recognition and their suitability for
+microcontrollers.}
+\label{tab:sota-models}
+\end{table}
+
+Audio models on microcontrollers are common for keyword spotting, where a
+small CNN detects spoken commands in a spectrogram of about one second of audio.
+The standard datasets and example applications for this task use a sampling
+rate of 16\,kHz~\cite{warden2018speech}~{[}CITATION: keyword spotting on
+microcontrollers{]}. If a model works on spectrograms, the feature extraction,
+which consists of cutting the signal into short frames, computing a Fourier
+transform and applying a mel filter bank, also has to run on the
+microcontroller. It has to give the same values as the implementation used for
+training, otherwise the model receives inputs it has never seen. For models that
+work directly on raw IMU windows, as in the example above, this step is much
+simpler~\cite{zhou2025efficient}. When audio and motion are
+combined on a wearable, however, the microphone is usually the part that uses
+the most energy, which is why SAMoSA only switches it on when
+needed~\cite{mollyn2022samosa}. The smartwatch systems for audio and motion
+described in Section~\ref{sec:sota-audio} run on smartwatches and phones or are
+evaluated offline. No study was found that runs and compares several fusion
+variants of audio and wrist motion on a microcontroller.
+
+%------------------------------------------------------------------------------
+\section{Evaluation Practice}
+\label{sec:sota-evaluation}
+
+How well an activity recognition system seems to work depends strongly on how
+the data is split into training and test data. Since neighbouring windows
+usually overlap by half, they share a large part of their samples. If windows
+are assigned to the training and test set randomly, the test set contains
+windows that are almost identical to windows in the training set, and the
+measured accuracy is higher than it would be for new recordings. It has been
+shown that this effect leads to a clear overestimation of performance for many
+different features and classifiers, and that long, repetitive activities are
+affected most~\cite{hammerla2015lets}. To avoid it, the data should be split
+into continuous blocks instead of single windows.
+
+A second issue is how well a system works for new people. Results are always
+higher when data of the same person is used for training and testing than when
+the test person is completely left out. Table~\ref{tab:sota-evaluation} shows
+this effect for several studies. For the 3D printer assembly, for example, the
+best fusion model reached 84.6\,\% when half of the windows of each worker were
+used for training, but only 77.8\,\% when the test worker was left out, and the
+best single-sensor model reached only about 65\,\% in this
+case~\cite{alamin2019action}.
+
+\begin{table}[!ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.0cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{2.6cm}|}
+\hline
+\textbf{Task} & \textbf{Metric} & \textbf{Same persons in training and test}
+  & \textbf{Test persons left out} \\
+\hline
+Wood workshop assembly, 9 activities~\cite{ward2006activity}
+  & Recall / precision & 78\,\% / 74\,\% & 66\,\% / 63\,\% \\
+\hline
+Assembly actions with forearm IMU and EMG, 6 actions~\cite{tao2018worker}
+  & Accuracy & 98\,\% & 87\,\%$^{a}$ \\
+\hline
+3D printer assembly step, 7 actions, best fusion model~\cite{alamin2019action}
+  & Accuracy & 84.6\,\% & 77.8\,\% \\
+\hline
+Daily activities (MMAct), video and IMU~\cite{gao2023mmtsa}
+  & F1 score & 94.07\,\%$^{b}$ & 87.41\,\% \\
+\hline
+\end{tabularx}
+
+\vspace{1mm}
+{\footnotesize\raggedright
+$^{a}$~[VERIFY: figures against full text].
+$^{b}$~Split by recording session, so the same persons appear in training and
+test.\par}
+\caption{Effect of the evaluation protocol on reported results.}
+\label{tab:sota-evaluation}
+\end{table}
+
+Many studies only give the
+ratio of the split, for example 80/20, without saying whether the split was
+made by person, by session or by window~\cite{zhou2025efficient,
+koch2024recognition, matin2024hybrid}. This makes it hard to compare their
+numbers. Datasets from assembly and workshop settings are also small, often with
+only about five participants~\cite{ward2006activity, alamin2019action,
+chatterjee2020laso}, so the evaluation protocol has a large effect on the
+result.
+Some methods are designed especially for this situation and are tested with
+only one to five percent of the data labelled~\cite{ouyang2022cosmo}.
+
+Finally, assembly datasets are usually imbalanced, because some activities take
+much longer than others. The accuracy then mainly shows how well the frequent
+classes are recognised. For this reason the macro F1 score is often reported in
+addition to accuracy. It is calculated from precision and recall for each class
+separately and then averaged, so that every class counts the
+same~\cite{bulling2014tutorial}.
+
+%------------------------------------------------------------------------------
+\section{Summary and Research Gap}
+\label{sec:sota-gap}
+
+Table~\ref{tab:sota-comparison} compares the work that is most closely related
+to this thesis. For each system it shows whether the IMU is worn on the wrist,
+whether audio is used as an input for classification, whether the activities
+involve assembly or tool use, whether different fusion strategies are compared,
+and whether the model runs on a microcontroller.
+
+\begin{table}[!ht]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.1cm}|C|C|C|C|C|}
+\hline
+\textbf{System} & \textbf{Wrist-worn IMU} & \textbf{Audio as input}
+  & \textbf{Assembly or tool use} & \textbf{Fusion levels compared}
+  & \textbf{Runs on MCU} \\
+\hline
+Ward et~al.~2006~\cite{ward2006activity}            & yes    & yes    & yes    & partly$^{a}$ & no \\
+Stiefmeier et~al.~2008~\cite{stiefmeier2008wearable} & partly$^{b}$ & no & yes  & no     & no \\
+Koskim\"aki et~al.~2009~\cite{koskimaki2009activity} & yes    & no     & yes    & --     & no \\
+Tao et~al.~2018~\cite{tao2018worker}                & partly$^{c}$ & no & yes  & no     & no \\
+Al-Amin et~al.~2019~\cite{alamin2019action}         & partly$^{c}$ & no & yes  & yes    & no \\
+Laput and Harrison 2019~\cite{laput2019sensing}     & yes    & partly$^{d}$ & no & --   & no \\
+LASO 2020~\cite{chatterjee2020laso}                 & yes    & partly$^{e}$ & partly$^{f}$ & no & no \\
+SAMoSA 2022~\cite{mollyn2022samosa}                 & yes    & yes    & no     & no     & no \\
+Bhattacharya et~al.~2022~\cite{bhattacharya2022leveraging} & yes & yes & no    & yes    & no \\
+OpenPack 2024~\cite{yoshimura2024openpack}          & yes    & no     & partly$^{g}$ & no & no \\
+Koch et~al.~2024~\cite{koch2024recognition}         & no     & yes    & no     & partly$^{h}$ & no \\
+Nakabayashi and Saito 2024~\cite{nakabayashi2024multimodal} & no & no  & no     & no     & yes \\
+Zhou et~al.~2025~\cite{zhou2025efficient}           & no     & no     & no     & --     & yes \\
+Mahfuz et~al.~2026~\cite{mahfuz2026proactive}       & yes    & yes    & yes    & no     & no$^{i}$ \\
+\hline
+This thesis                                         & yes    & yes    & yes    & yes    & yes \\
+\hline
+\end{tabularx}
+
+\vspace{1mm}
+{\footnotesize\raggedright
+``--'' not applicable because only one sensor type is used.
+$^{a}$~Several ways of combining classifier decisions, no early fusion.
+$^{b}$~Several body-worn sensors, not one wrist device.
+$^{c}$~Forearm armband with IMU and EMG.
+$^{d}$~Accelerometer with a high sampling rate that picks up vibrations, no microphone.
+$^{e}$~Audio from a phone in the pocket, only used to label the IMU data.
+$^{f}$~Workshop activities such as sawing and hammering, no assembly sequence.
+$^{g}$~Packaging work in logistics.
+$^{h}$~Merged versus separately processed sensor nodes.
+$^{i}$~Runs on edge devices, hardware type not stated in the abstract.\par}
+\caption{Comparison of closely related work.}
+\label{tab:sota-comparison}
+\end{table}
+
+Each of these aspects has been studied on its own. Assembly and tool
+activities have been recognised with wrist-worn IMUs since the late
+2000s~\cite{ward2006activity, koskimaki2009activity}, and these early
+studies already showed that sound recorded close to the hands adds information
+that movement alone does not provide. Studies with smartwatches have confirmed that audio and wrist motion
+complement each other, and different fusion strategies for these two signals
+have been compared. IMU models are regularly quantised and run on
+microcontrollers. In industry, on the other hand, assembly is monitored with
+connected tools and scanners, and there is no general wearable that recognises
+work with any hand tool.
+
+What is missing is a combination of these aspects. The studies that compare
+fusion strategies for audio and motion deal with daily activities and run on
+smartwatches or offline. The assembly studies that compare fusion levels use
+EMG and cameras instead of sound. The multimodal systems that run on a
+microcontroller use only one fusion approach and report their resource needs
+only in part. It is therefore still open which fusion strategy for audio and
+wrist motion is best suited for assembly activities if the model has to run on
+the wearable device itself, and how much memory and computing time the
+different strategies need on such hardware. This thesis addresses this
+question. Chapter~\ref{ch:data} describes the dataset of assembly activities
+recorded with wrist-worn devices, and Chapter~\ref{ch:method} describes the
+fusion models and their deployment on a microcontroller.

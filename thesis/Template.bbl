@@ -1,0 +1,216 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+
+\bibitem{alamin2019action}
+Al-Amin, M., Tao, W., Doell, D., Lingard, R., Yin, Z., Leu, M.C., Qin, R.:
+  Action recognition in manufacturing assembly using multimodal sensor fusion.
+  Procedia Manufacturing  39,  158--167 (2019)
+
+\bibitem{audacity}
+{Audacity Team}: Audacity: Free, open source, cross-platform audio software
+  (2026), \url{https://www.audacityteam.org/}, accessed 2026. Version [VERIFY]
+
+\bibitem{banos2014window}
+Ba{\~n}os, O., Galvez, J.M., Damas, M., Pomares, H., Rojas, I.: Window size
+  impact in human activity recognition. Sensors  14(4),  6474--6499 (2014)
+
+\bibitem{berg2018action}
+Berg, J., Reckordt, T., Richter, C., Reinhart, G.: Action recognition in
+  assembly for human-robot-cooperation using hidden {Markov} models. Procedia
+  CIRP  76,  205--210 (2018)
+
+\bibitem{bhattacharya2022leveraging}
+Bhattacharya, S., Adaimi, R., Thomaz, E.: Leveraging sound and wrist motion to
+  detect activities of daily living with commodity smartwatches. Proceedings of
+  the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies  6(2)
+  (2022)
+
+\bibitem{bonyani2026multimodal}
+Bonyani, M., Soleymani, M., Wang, C.: Multimodal action recognition for
+  manufacturing assembly task through spatio-temporal knowledge fusion.
+  Information Fusion  132,  104225 (2026)
+
+\bibitem{bossard2026smarttool}
+{Bossard Group}: {SmartTool} overview -- smart factory assembly (2026),
+  \url{https://media.bossard.com/-/media/bossard-group/website/documents/smart-factory-assembly/smart-tools/bossard-smarttool-overview-factsheet-en.pdf},
+  product fact sheet. Accessed 30.10.2026
+
+\bibitem{bulling2014tutorial}
+Bulling, A., Blanke, U., Schiele, B.: A tutorial on human activity recognition
+  using body-worn inertial sensors. ACM Computing Surveys  46(3),  1--33 (2014)
+
+\bibitem{chatterjee2020laso}
+Chatterjee, S., Chakma, A., Gangopadhyay, A., Roy, N., Mitra, B., Chakraborty,
+  S.: {LASO}: Exploiting locomotive and acoustic signatures over the edge to
+  annotate {IMU} data for human activity recognition. In: Proceedings of the
+  2020 International Conference on Multimodal Interaction (ICMI '20) (2020)
+
+\bibitem{choi2022multistage}
+Choi, H., Beedu, A., Haresamudram, H., Essa, I.: Multi-stage based feature
+  fusion of multi-modal data for human activity recognition (2022),
+  arXiv:2211.04331
+
+\bibitem{david2021tflm}
+David, R., et~al.: {TensorFlow Lite Micro}: Embedded machine learning for
+  {TinyML} systems. In: Proceedings of Machine Learning and Systems (MLSys).
+  vol.~3 (2021)
+
+\bibitem{fraunhofer2017tool}
+{Fraunhofer IIS}: Ensure quality in assembly with intelligent tools -- pilot
+  project with {BMW} {Regensburg} (2017),
+  \url{https://www.iis.fraunhofer.de/en/pr/2017/201704_LV_Werkzeugtracking.html},
+  press release, April 2017. Accessed 30.10.2026
+
+\bibitem{friard2016boris}
+Friard, O., Gamba, M.: {BORIS}: A free, versatile open-source event-logging
+  software for video/audio coding and live observations. Methods in Ecology and
+  Evolution  7(11),  1325--1330 (2016)
+
+\bibitem{gao2023mmtsa}
+Gao, Z., Wang, Y., Chen, J., Xing, J., Patel, S., Liu, X., Shi, Y.: {MMTSA}:
+  Multi-modal temporal segment attention network for efficient human activity
+  recognition. Proceedings of the ACM on Interactive, Mobile, Wearable and
+  Ubiquitous Technologies  7(3), ~96 (2023)
+
+\bibitem{hammerla2015lets}
+Hammerla, N., Pl{\"o}tz, T.: Let's (not) stick together: Pairwise similarity
+  biases cross-validation in activity recognition. In: Proceedings of the 2015
+  ACM International Joint Conference on Pervasive and Ubiquitous Computing
+  (UbiComp '15). pp. 1041--1051 (2015)
+
+\bibitem{koch2024recognition}
+Koch, M., Pfitzinger, T., Schlenke, F., Kohlmorgen, F., Groll, R., W{\"o}hrle,
+  H.: Recognition of human activities based on ambient audio and vibration
+  data. IEEE Access  12 (2024)
+
+\bibitem{koskimaki2009activity}
+Koskim{\"a}ki, H., Huikari, V., Siirtola, P., Laurinen, P., R{\"o}ning, J.:
+  Activity recognition using a wrist-worn inertial measurement unit: A case
+  study for industrial assembly lines. In: 17th Mediterranean Conference on
+  Control and Automation (MED). pp. 401--405. IEEE (2009)
+
+\bibitem{kumar2024har}
+Kumar, P., Chauhan, S., Awasthi, L.K.: Human activity recognition ({HAR}) using
+  deep learning: Review, methodologies, progress and future research
+  directions. Archives of Computational Methods in Engineering  31,  179--219
+  (2024)
+
+\bibitem{laput2019sensing}
+Laput, G., Harrison, C.: Sensing fine-grained hand activity with smartwatches.
+  In: Proceedings of the 2019 CHI Conference on Human Factors in Computing
+  Systems (CHI '19). p. Paper 338. ACM (2019)
+
+\bibitem{lukowicz2004recognizing}
+Lukowicz, P., Ward, J.A., Junker, H., St{\"a}ger, M., Tr{\"o}ster, G., Atrash,
+  A., Starner, T.: Recognizing workshop activity using body worn microphones
+  and accelerometers. In: Pervasive Computing (Pervasive 2004). Lecture Notes
+  in Computer Science, vol. 3001. Springer (2004)
+
+\bibitem{m5stickcplus2}
+{M5Stack Technology Co., Ltd.}: {M5StickC PLUS2} documentation (2026),
+  \url{https://docs.m5stack.com/en/core/M5StickC PLUS2}, product documentation.
+  Accessed 2026
+
+\bibitem{mahfuz2026proactive}
+Mahfuz, R., Guo, Y., Visser, E., Chinchili, P.: Proactive conversational
+  assistant for a procedural manual task based on audio and {IMU} (2026),
+  arXiv:2602.15707, preprint
+
+\bibitem{matin2024hybrid}
+Matin, A., Islam, M.R., Zhu, Y., Wang, X., Huo, H., Xu, G.: Hybrid deep
+  learning for assembly action recognition in smart manufacturing.
+  International Journal of Computer Vision and Signal Processing  14(1),  9--17
+  (2024)
+
+\bibitem{mcfee2015librosa}
+McFee, B., Raffel, C., Liang, D., Ellis, D.P.W., McVicar, M., Battenberg, E.,
+  Nieto, O.: librosa: Audio and music signal analysis in {Python}. In:
+  Proceedings of the 14th Python in Science Conference. pp. 18--25 (2015)
+
+\bibitem{mollyn2022samosa}
+Mollyn, V., Ahuja, K., Verma, D., Harrison, C., Goel, M.: {SAMoSA}: Sensing
+  activities with motion and subsampled audio. Proceedings of the ACM on
+  Interactive, Mobile, Wearable and Ubiquitous Technologies  6(3),  132 (2022)
+
+\bibitem{nakabayashi2024multimodal}
+Nakabayashi, T., Saito, H.: Multimodal human activity recognition on edge
+  devices. In: 2024 IEEE International Symposium on Mixed and Augmented Reality
+  Adjunct (ISMAR-Adjunct) (2024)
+
+\bibitem{nsc2025lifebooster}
+{National Safety Council}: {MSD} solutions lab case study: Wearable sensor
+  pilot at a beverage manufacturing plant (2025),
+  \url{https://www.nsc.org/getmedia/6a48bbb5-7d13-4478-b8e2-496383dbea20/msd-case-study-pepsico.pdf},
+  case study. Accessed 30.10.2026. [VERIFY exact title]
+
+\bibitem{ouyang2022cosmo}
+Ouyang, X., Shuai, X., Zhou, J., Shi, I.W., Xie, Z., Xing, G., Huang, J.:
+  Cosmo: Contrastive fusion learning with small data for multimodal human
+  activity recognition. In: Proceedings of the 28th Annual International
+  Conference on Mobile Computing and Networking (MobiCom '22) (2022)
+
+\bibitem{proglove2023bmw}
+{ProGlove (Workaround GmbH)}: Case study {BMW Group}: Wearable scanners in
+  dingolfing (2023),
+  \url{https://www.proglove.com/wp-content/uploads/2023/03/case-study-bmw-en.pdf},
+  vendor case study. Accessed 30.10.2026
+
+\bibitem{proglove2026automotive}
+{ProGlove (Workaround GmbH)}: {ProGlove} for automotive industries (2026),
+  \url{https://proglove.com/why-proglove/industries/automotive/}, vendor web
+  page. Accessed 30.10.2026
+
+\bibitem{reining2019har}
+Reining, C., Moya~Rueda, F., ten Hompel, M., Fink, G., Niemann, F.: Human
+  activity recognition for production and logistics -- a systematic literature
+  review. Information  10(8),  245 (2019)
+
+\bibitem{sap2026intelligenttools}
+{SAP SE}: Assembling components with intelligent tools (2026),
+  \url{https://learning.sap.com/courses/executing-production-processes-in-the-s-factory/assembling-components-with-intelligent-tools},
+  sAP Digital Manufacturing learning material. Accessed 30.10.2026
+
+\bibitem{sherafat2019construction}
+Sherafat, B., Rashidi, A., Lee, Y.C., Ahn, C.R.: Automated activity recognition
+  of construction equipment using a data fusion approach (2019),
+  arXiv:1906.02070
+
+\bibitem{stiefmeier2008wearable}
+Stiefmeier, T., Roggen, D., Ogris, G., Lukowicz, P., Tr{\"o}ster, G.: Wearable
+  activity tracking in car manufacturing. IEEE Pervasive Computing  7(2),
+  42--50 (2008)
+
+\bibitem{tao2018worker}
+Tao, W., Lai, Z.H., Leu, M.C., Yin, Z.: Worker activity recognition in smart
+  manufacturing using {IMU} and {sEMG} signals with convolutional neural
+  networks. Procedia Manufacturing  26,  1159--1166 (2018)
+
+\bibitem{gao2024wearables}
+{U.S. Government Accountability Office}: Workplace safety and health: Ergonomic
+  wearable sensors (technology assessment {GAO-25-107213}) (2024),
+  \url{https://gao.gov/assets/gao-25-107213.pdf}, december 2024. Accessed
+  30.10.2026. [VERIFY exact title]
+
+\bibitem{ward2006activity}
+Ward, J.A., Lukowicz, P., Tr{\"o}ster, G., Starner, T.E.: Activity recognition
+  of assembly tasks using body-worn microphones and accelerometers. IEEE
+  Transactions on Pattern Analysis and Machine Intelligence  28(10),
+  1553--1567 (2006)
+
+\bibitem{warden2018speech}
+Warden, P.: Speech commands: A dataset for limited-vocabulary speech
+  recognition (2018), arXiv:1804.03209
+
+\bibitem{yoshimura2024openpack}
+Yoshimura, N., Morales, J., Maekawa, T., Hara, T.: {OpenPack}: A large-scale
+  dataset for recognizing packaging works in {IoT}-enabled logistic
+  environments. In: IEEE International Conference on Pervasive Computing and
+  Communications (PerCom). pp. 90--97 (2024)
+
+\bibitem{zhou2025efficient}
+Zhou, H., Zhang, X., Feng, Y., Zhang, T., Xiong, L.: Efficient human activity
+  recognition on edge devices using {DeepConvLSTM} architectures. Scientific
+  Reports  15,  13830 (2025)
+
+\end{thebibliography}

@@ -70,15 +70,24 @@ The environment provides a workbench with parts, hand tools, and fasteners, so
 that a manual assembly task can be performed under controlled but realistic
 conditions.
 
-Data were recorded from two participants over three sessions. In each session one
-participant wore the sensors and performed the task while the other operated a
+Data were recorded from two participants over six sessions, all in the same
+laboratory and with the same equipment. In sessions 1--3, one participant wore the
+sensors and performed the full assembly task while the other filmed with a
 handheld mobile-phone camera, following the acting participant on foot during the
-segments that involved walking; the two participants exchanged roles for later
-sessions. Each session consisted of a repeated assembly sequence: three
-repetitions in two of the sessions and four repetitions, plus one sequence marked
-invalid, in the third. Session lengths, measured from the recorded streams, were
-approximately 6.7, 7.6, and 16.9 minutes, for a total of about 31 minutes of
-recording (Section~\ref{sec:protocol}).
+segments that involved walking. The participants exchanged roles between sessions.
+Each of these sessions consisted of a repeated assembly sequence, with three
+repetitions in two of the sessions and four repetitions plus one sequence marked
+invalid in the third. These sessions lasted approximately 6.7, 7.6 and
+16.9 minutes.
+
+Sessions 1--3 produced few examples of the short or infrequent activities, such
+as placing a container or walking, while screwdriving dominated. Sessions 4--6
+were therefore recorded with a different focus. Instead of the complete assembly
+sequence, the participant performed individual activities from the same task as
+longer continuous bouts, for example several minutes of walking or carrying a
+container. These sessions lasted approximately 12.1, 16.5 and 8.3 minutes and
+bring the total recording time to about 68 minutes, as summarised in
+Section~\ref{sec:protocol}.
 
 Each repetition followed the same 32-step protocol, transcribed in the annotation
 records. The participant begins at the bench, walks to a supply table, and
@@ -91,25 +100,33 @@ returning the parts to their boxes. Because the same operations recur several
 times per repetition, the screwdriving class dominates the dataset
 (Section~\ref{sec:stats}).
 
-Video of each session was annotated with a larger set of labels than the dataset
-finally uses. Across sessions the coded label set contained fifteen to eighteen
-activity labels, including narration (\texttt{speech}), the disassembly actions
-(\texttt{screw\_loosening}, \texttt{remove\_screws}, \texttt{store\_part}), a rare
-\texttt{pick\_container} action, and in one session the postures \texttt{sit} and
-\texttt{stand}. The modelling taxonomy retains the ten classes listed in
-Table~\ref{tab:activity-classes}, which cover the assembly half of the task
-together with locomotion and rest. \texttt{screw\_loosening} was merged into
-\texttt{screw\_tightening}: the two actions use the same powered screwdriver and
-differ only in rotation direction, producing near-identical inertial and acoustic
-signatures that a two-second window cannot reliably separate. This merge accounts
-for the class's size: the 518 \texttt{screw\_tightening} windows in
-Table~\ref{tab:activity-classes} include both tightening and loosening instances.
-The remaining labels (\texttt{speech}, \texttt{remove\_screws},
-\texttt{store\_part}, \texttt{pick\_container}, and, in one session,
-\texttt{sit}/\texttt{stand}) were excluded rather than merged. The class
-descriptions in Table~\ref{tab:activity-classes} are operational summaries taken
-from the 32-step protocol; the typical instance duration is the mean length of a
-coded activity segment, averaged over the three sessions.
+Video of sessions 1--3 was annotated with a larger set of labels than the dataset
+finally uses. Across these sessions the coded label set contained fifteen to
+eighteen activity labels, including narration (\texttt{speech}), the disassembly
+actions (\texttt{screw\_loosening}, \texttt{remove\_screws}, \texttt{store\_part}),
+a rare \texttt{pick\_container} action, and in one session the postures
+\texttt{sit} and \texttt{stand}. The modelling taxonomy retains the nine classes
+listed in Table~\ref{tab:activity-classes}, which cover the assembly half of the
+task together with locomotion and rest.
+
+\texttt{screw\_loosening} was merged into \texttt{screw\_tightening}. The two
+actions use the same powered screwdriver and differ only in the direction of
+rotation, which produces nearly identical inertial and acoustic signatures that a
+two-second window cannot reliably separate. The class
+\texttt{compartment\_interaction}, which describes opening and closing the storage
+compartment beside the bench, was coded in sessions 1--3 but not included in the
+final taxonomy. The movement involved is short and unspecific, and the compartment
+produces no characteristic sound, so the class offers little that distinguishes
+it from other activities in either modality. In addition, no further examples of
+it were recorded in sessions 4--6, so its data remained limited. The remaining
+labels (\texttt{speech}, \texttt{remove\_screws}, \texttt{store\_part},
+\texttt{pick\_container}, and, in one session, \texttt{sit}/\texttt{stand}) were
+excluded rather than merged.
+
+The class descriptions in Table~\ref{tab:activity-classes} are operational
+summaries taken from the 32-step protocol. The typical instance duration is the
+mean length of a coded activity segment in sessions 1--3, since sessions 4--6
+contain much longer bouts.
 
 \begin{table}[htbp]
 \centering
@@ -121,23 +138,22 @@ coded activity segment, averaged over the three sessions.
 \textbf{Class} & \textbf{Operational description (from the recording protocol)}
  & \textbf{Typ.\ dur.} & \textbf{Win.} \\
 \hline
-\texttt{idle} & Standing at the bench without performing a task. & 4--12\,s & 45 \\
-\texttt{walk} & Walking between the workstation and the supply table. & $\approx$5\,s & 73 \\
-\texttt{carry\_\allowbreak container} & Carrying the parts container between the supply table and the workstation. & 5--9\,s & 56 \\
-\texttt{place\_\allowbreak container} & Setting the parts container down on the work surface. & 3--5\,s & 35 \\
-\texttt{assemble\_\allowbreak parts} & Stacking three parts on the workstation so that they align and fit together. & 10--19\,s & 143 \\
-\texttt{hammering} & Striking the stacked parts with a hammer to seat them. & 6--11\,s & 85 \\
-\texttt{measuring} & Measuring the length and width of the assembled part with a scale. & 8--9\,s & 93 \\
-\texttt{insert\_\allowbreak screws} & Passing four screws through the aligned parts by hand. & 19--22\,s & 219 \\
-\texttt{screw\_\allowbreak tightening} & Driving screws with a powered screwdriver; includes loosening actions merged into this class (Section~\ref{sec:taxonomy}). & 22--31\,s & 518 \\
-\texttt{compartment\_\allowbreak interaction} & Opening and closing the storage compartment beside the bench. & 5--11\,s & 113 \\
+\texttt{idle} & Standing at the bench without performing a task. & 4--12\,s & 307 \\
+\texttt{walk} & Walking between the workstation and the supply table. & $\approx$5\,s & 386 \\
+\texttt{carry\_\allowbreak container} & Carrying the parts container between the supply table and the workstation. & 5--9\,s & 220 \\
+\texttt{place\_\allowbreak container} & Setting the parts container down on the work surface. & 3--5\,s & 74 \\
+\texttt{assemble\_\allowbreak parts} & Stacking three parts on the workstation so that they align and fit together. & 10--19\,s & 166 \\
+\texttt{hammering} & Striking the stacked parts with a hammer to seat them. & 6--11\,s & 250 \\
+\texttt{measuring} & Measuring the length and width of the assembled part with a scale. & 8--9\,s & 320 \\
+\texttt{insert\_\allowbreak screws} & Passing four screws through the aligned parts by hand. & 19--22\,s & 246 \\
+\texttt{screw\_\allowbreak tightening} & Driving screws with a powered screwdriver, including loosening actions merged into this class (Section~\ref{sec:taxonomy}). & 22--31\,s & 596 \\
 \hline
-\multicolumn{3}{|l|}{\textbf{Total paired windows}} & \textbf{1380} \\
+\multicolumn{3}{|l|}{\textbf{Total paired windows}} & \textbf{2565} \\
 \hline
 \end{tabularx}
 \caption{Activity classes in the modelling dataset. Descriptions are taken from
 the 32-step assembly protocol. ``Typ.\ dur.'' is the range of mean coded-segment
-durations across the three recording sessions; for \texttt{screw\_tightening} it
+durations across sessions 1--3; for \texttt{screw\_tightening} it
 covers both the tightening and the merged loosening segments. ``Win.'' is the
 number of two-second windows per class in the final dominant-wrist dataset
 (Section~\ref{sec:stats}).}
@@ -180,8 +196,8 @@ acquisition path.
 \begin{figure}[!ht]
 \centering
 \makebox[\textwidth][c]{\includegraphics[width=1.1\textwidth]{figures/fig-acq-architecture}}
-\caption{Architecture of the multimodal data-acquisition system. Each of the four
-wearable devices samples an IMU and a microphone independently, timestamps and
+\caption{Architecture of the multimodal data-acquisition system. Each wearable
+device (four in sessions 1--3, three in sessions 4--6) samples an IMU and a microphone independently, timestamps and
 frames the samples, and streams them as two separate UDP streams (inertial on one
 port, audio on another) to a single host, which separates the devices by packet
 source address and writes raw per-device files.}
@@ -234,28 +250,22 @@ devices.
 \subsection{Multi-Device Capture and Body Placements}
 \label{sec:placements}
 
-In each recording session, four sensor devices were worn: one on the dominant
-wrist, one on the non-dominant wrist, one at the waist, and one on the leg. All
-four devices simultaneously recorded inertial and acoustic data and streamed
-them to the host system. Recording at several body locations was a deliberate
-design choice: it made it possible to capture potentially useful information
-from different parts of the body and offered redundancy against a device failing
-during a recording session.
+In sessions 1--3, four sensor devices were worn: one on the dominant wrist, one on
+the non-dominant wrist, one at the waist, and one on the leg. In sessions 4--6,
+the leg device was omitted, since its data had proved of little use for the
+bench-based activities, as explained below. All devices simultaneously recorded
+inertial and acoustic data and streamed them to the host system. Recording at
+several body locations was a deliberate design choice. It made it possible to
+capture potentially useful information from different parts of the body and
+offered redundancy against a device failing during a recording session.
 
-However, not all of the recorded data were used to train the model.
+However, not all of the recorded data were used to train the models.
 Table~\ref{tab:placements} summarises the sensor data recorded and the data
-finally input to the modelling pipeline. The models presented in this thesis use
-only the dominant-wrist inertial data and the dominant-wrist microphone data.
-
-During preprocessing, windows were first created for all four sensor locations
-and placed in their respective session directories. These windows used the same
-naming convention across all placements, based on the activity, window start
-time, and window index on the shared video-aligned timeline. This naming
-convention persisted when the windows were subsequently consolidated into one
-directory, so each window was retained as a single file. A byte-level comparison
-of the retained inertial and audio files indicated that they are those of the
-dominant-wrist device. Non-dominant-wrist, waist, and leg data are thus available
-in the original session data, but not in the modelling dataset.
+finally used. All models use the inertial and acoustic data of the dominant
+wrist. The only exception is the standalone audio model, which additionally uses
+the audio of the non-dominant wrist and the waist from sessions 4--6 to increase
+the amount of acoustic training data, as described in
+Section~\ref{sec:audio-model}.
 
 The data from the leg-worn sensor package were excluded after inspection of the
 recorded signals. The leg inertial data contained relatively little
@@ -283,52 +293,57 @@ Leg                & inertial + audio & no  & no  \\
 \end{tabularx}
 \caption{Body placements: data recorded during acquisition versus data used as
 model input in the final pipeline. Only the dominant-wrist inertial and acoustic
-streams reach the model.}
+streams reach the fusion models.}
 \label{tab:placements}
 \end{table}
 
 \section{Recording Protocol}
 \label{sec:protocol}
 
-The same procedure was followed for each recording session. All four devices
+The same procedure was followed for each recording session. All devices
 were worn by the acting participant and fastened with straps to keep the sensor
 axes fixed relative to the body segment to which they belonged. Before recording
 started, all devices were checked to ensure that they were connected and
 transmitting data correctly. The participant then repeated the set of predefined
 assembly steps at the workbench while the second participant filmed the assembly
 sequence with a handheld phone. The host computer displayed the incoming packets
-from all four devices, so that a disconnection or a sustained loss of packets
+from all devices, so that a disconnection or a sustained loss of packets
 could be noticed; no session required a restart.
 
 Table~\ref{tab:sessions} provides an overview of the recorded sessions. The
 session durations were calculated from the recorded inertial streams, and the
-number of two-second windows was counted from the final dataset. The three
-sessions contributed 352, 371, and 657 windows. This class imbalance, as
-discussed in Section~\ref{sec:stats}, is mostly due to the recording protocol:
-some actions, such as screwdriving, were performed several times within each
-repetition, whereas other actions, such as placing a container, occurred only
-once per repetition.
+number of two-second windows was counted from the final dataset. Sessions 1--3
+contributed 320, 343 and 604 windows, and sessions 4--6 contributed 164, 738 and
+396 windows. In sessions 1--3, the distribution of classes follows the recording
+protocol. Some actions, such as screwdriving, were performed several times within
+each repetition, whereas others, such as placing a container, occurred only once.
+Sessions 4--6 were used to add data for the classes that were under-represented
+in this way. The resulting class distribution is discussed in
+Section~\ref{sec:stats}.
 
 \begin{table}[htbp]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{|c|p{3.9cm}|c|c|c|}
+\begin{tabular}{|c|p{5.6cm}|c|c|c|}
 \hline
-\textbf{Part.} & \textbf{Session (project label)} & \textbf{Duration}
+\textbf{Session} & \textbf{Type} & \textbf{Duration}
  & \textbf{Reps} & \textbf{Windows} \\
 \hline
-P2 & First session, all four placements & $\approx$6.7\,min & 3 & 352 \\
-P1 & Three repetitions                  & $\approx$7.6\,min & 3 & 371 \\
-P2 & Four repetitions, one invalid      & $\approx$16.9\,min & 4\,$(+1)$ & 657 \\
+1 & Assembly sequence, all four placements & $\approx$6.7\,min & 3 & 320 \\
+2 & Assembly sequence & $\approx$7.6\,min & 3 & 343 \\
+3 & Assembly sequence, one invalid & $\approx$16.9\,min & 4\,$(+1)$ & 604 \\
+4 & Activity-focused: carrying a container & $\approx$12.1\,min & -- & 164 \\
+5 & Activity-focused: idle, walking, assembly steps, screwdriving & $\approx$16.5\,min & -- & 738 \\
+6 & Activity-focused: idle, hammering, measuring, placing & $\approx$8.3\,min & -- & 396 \\
 \hline
-\multicolumn{2}{|l|}{\textbf{Total}} & \textbf{$\approx$31.2\,min} & & \textbf{1380} \\
+\multicolumn{2}{|l|}{\textbf{Total}} & \textbf{$\approx$68.1\,min} & & \textbf{2565} \\
 \hline
 \end{tabular}
-\caption{Data-acquisition sessions. ``Session'' paraphrases the folder label used
-in the project records. ``$(+1)$'' denotes one further sequence marked invalid and
-set aside.}
+\caption{Data-acquisition sessions. ``$(+1)$'' denotes one further sequence marked
+invalid and set aside. Sessions 4--6 consist of longer bouts of individual
+activities instead of repetitions of the full sequence.}
 \label{tab:sessions}
 \end{table}
 
@@ -473,9 +488,8 @@ identical to the packet-loss rate, since every missing packet is exactly 512
 samples of silence.
 
 The sequence numbers are used to detect the loss of packets in the inertial
-streams as well. In the dominant-wrist stream, the packet-loss rates were
-0.056\,\%, 0.022\,\%, and 0.031\,\% for the three sessions, respectively, and
-roughly 0.035\,\% overall (Section~\ref{sec:quality}). As described in
+streams as well. In the dominant-wrist stream, the packet-loss rate was roughly
+0.035\,\% overall (Section~\ref{sec:quality}). As described in
 Section~\ref{sec:decimation}, the short gaps in the inertial data were then
 filled by linear interpolation on the resampled time grid.
 
@@ -483,12 +497,12 @@ filled by linear interpolation on the resampled time grid.
 \label{sec:decimation}
 
 The inertial stream is delivered at the device native rate, measured at
-249.6--249.9\,Hz across the three sessions from the devices' microsecond
-timestamps. This is consistent with the recovered design notes but not with the
-firmware's own in-code comment, which labels the relevant configuration call
-``100\,Hz''; the discrepancy has no effect on the modelling data, since
-decimation always targets a fixed 80\,Hz regardless of the input rate. The
-stream is reduced to this uniform 80\,Hz for modelling.
+approximately 220--250\,Hz across the sessions from the devices' microsecond
+timestamps. The firmware's own in-code comment labels the relevant configuration
+call ``100\,Hz'', which does not match the measured rate. The discrepancy has no
+effect on the modelling data, since decimation always targets a fixed 80\,Hz
+regardless of the input rate. The stream is reduced to this uniform 80\,Hz for
+modelling.
 
 The reduction is performed by mean binning. The stream is divided into
 consecutive 12.5\,ms bins, matching the desired sampling period at 80\,Hz, and
@@ -600,21 +614,20 @@ falls below 70\,\%, such as one spanning the transition region, is discarded.}
 \label{fig:windowing}
 \end{figure}
 
-Windowing was carried out for all four body placements, producing one set of
-labelled inertial and audio windows per placement, organised by class. The
-per-placement sets that are not used for modelling contain fifteen activity labels
-each.
+Windowing was carried out separately for each body placement and session,
+producing one set of labelled inertial and audio windows per placement, organised
+by class.
 
 \section{Dataset Statistics, Class Distribution, and Imbalance}
 \label{sec:stats}
 
-The dataset used for modelling is the dominant-wrist subset. It has 1380 paired
-inertial and audio windows for the ten activity classes outlined in
-Table~\ref{tab:activity-classes}. The data come from two participants and
-three recording sessions and represent roughly 23 minutes of windowed activity
-out of the 31 minutes of recorded data; the remaining time is not part of the
-modelling dataset because of excluded classes, the invalid sequence, and
-windows removed around activity transitions.
+The dataset used for modelling is the dominant-wrist subset. It has 2565 paired
+inertial and audio windows for the nine activity classes outlined in
+Table~\ref{tab:activity-classes}. The data come from two participants and six
+recording sessions and represent roughly 43 minutes of windowed activity out of
+the 68 minutes of recorded data. The remaining time is not part of the modelling
+dataset because of excluded classes, the invalid sequence, unannotated periods
+between the recorded activities and windows removed around activity transitions.
 
 Each inertial window contains a $160 \times 6$ array of accelerometer and
 gyroscope measurements sampled at 80\,Hz. Each corresponding audio window
@@ -628,17 +641,19 @@ shows the distribution of windows across the activity classes.
 \hline
 \textbf{Property} & \textbf{Value} \\
 \hline
-Paired inertial/audio windows & 1380 \\
-Activity classes              & 10 \\
+Paired inertial/audio windows & 2565 \\
+Activity classes              & 9 \\
 Participants                  & 2 \\
-Recording sessions            & 3 \\
-Windowed activity             & $\approx$23\,min \\
+Recording sessions            & 6 \\
+Windowed activity             & $\approx$43\,min \\
 Window length                 & 2\,s \\
 Window stride                 & 1\,s (50\,\% overlap) \\
 Minimum label coverage        & 70\,\% \\
 Inertial window               & $160 \times 6$ at 80\,Hz \\
 Audio window                  & 32\,000 samples, mono, 16\,kHz \\
 Inertial channels             & acc\_x, acc\_y, acc\_z, gyro\_x, gyro\_y, gyro\_z \\
+Additional audio windows      & 2224 (non-dominant wrist and waist, \\
+\quad (standalone audio model) & sessions 4--6) \\
 \hline
 \end{tabular}
 \caption{Composition of the dominant-wrist modelling dataset.}
@@ -650,10 +665,10 @@ Inertial channels             & acc\_x, acc\_y, acc\_z, gyro\_x, gyro\_y, gyro\_
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[x=1pt, y=1pt]
   \foreach [count=\i] \name/\val in {%
-      screw tightening/518, insert screws/219, assemble parts/143,
-      compartment interaction/113, measuring/93, hammering/85, walk/73,
-      carry container/56, idle/45, place container/35}{
-    \pgfmathsetmacro{\w}{\val/518*230}
+      screw tightening/596, walk/386, measuring/320, idle/307, hammering/250,
+      insert screws/246, carry container/220, assemble parts/166,
+      place container/74}{
+    \pgfmathsetmacro{\w}{\val/596*230}
     \pgfmathsetmacro{\yb}{-\i*15}
     \pgfmathsetmacro{\yt}{\yb+10}
     \pgfmathsetmacro{\ym}{\yb+5}
@@ -663,27 +678,28 @@ Inertial channels             & acc\_x, acc\_y, acc\_z, gyro\_x, gyro\_y, gyro\_
     \node[left,  font=\scriptsize] at (-2,\ym) {\name};
     \node[right, font=\scriptsize] at (\wl,\ym) {\val};
   }
-  \draw (0,0) -- (0,-155);
+  \draw (0,0) -- (0,-140);
 \end{tikzpicture}}
 \caption{Number of two-second windows per activity class in the dominant-wrist
-dataset ($n = 1380$). The distribution is dominated by the screwdriving classes;
-\texttt{screw\_tightening} alone accounts for about 38\,\% of the windows and the
-two screwdriving classes together for more than half.}
+dataset ($n = 2565$). \texttt{screw\_tightening} is the largest class with about
+23\,\% of the windows, while \texttt{place\_container} is the smallest with 74
+windows.}
 \label{fig:classdist}
 \end{figure}
 
-There is a significant imbalance in the class distribution. The smallest
-class, \texttt{place\_container}, contains only 35 windows, roughly one
-fifteenth of the largest. This imbalance is primarily due to the design of the
-task: actions such as screwdriving were repeated numerous times during each
-session, while other activities such as moving a container or walking were
-repeated only a few times. Consequently, the imbalance persists in the dataset
-and is not corrected during preprocessing. How it is handled in training and
-evaluation is detailed in Chapter~\ref{ch:method}, and its impact on the
-findings in Chapter~\ref{ch:discussion}.
+The class distribution is imbalanced. The smallest class,
+\texttt{place\_container}, contains 74 windows, roughly one eighth of the largest
+class, \texttt{screw\_tightening}, with 596 windows. The imbalance results mainly
+from the design of the assembly task, in which screwdriving is repeated many times
+per sequence while other activities, such as placing a container, occur only
+once. It is not corrected during preprocessing. How it is handled in training and
+evaluation is detailed in Chapter~\ref{ch:method}, and its impact on the findings
+in Chapter~\ref{ch:discussion}.
 
-The number of windows discarded during windowing because they failed the
-70\,\% label-coverage requirement was not recorded.
+The number of windows discarded because of the 70\,\% label-coverage requirement
+was not recorded for sessions 1--3. For sessions 4--6, 911 windows of the
+dominant wrist were discarded, most of them in periods between the recorded
+activities that were not annotated.
 
 \section{Data-Quality Assessment and Known Artefacts}
 \label{sec:quality}
@@ -703,9 +719,8 @@ summarises the primary data-quality indicators that could be established.
 \hline
 \textbf{Indicator} & \textbf{Value} & \textbf{Notes} \\
 \hline
-Inertial packet loss (dominant wrist) & 0.022--0.056\,\% per session &
-  From sequence-number gaps; $\approx$0.035\,\% overall. Below the 1\,\% design
-  target. \\
+Inertial packet loss (dominant wrist) & $\approx$0.035\,\% overall &
+  From sequence-number gaps. Below the 1\,\% design target. \\
 Audio packet loss (dominant wrist) & 0.15--0.40\,\% per session; $\approx$0.33\,\% overall &
   From \texttt{audio\_ts} packet-arrival timestamp gaps, computed from the raw
   per-device logs. Reconstructed audio (inserted silence) is the same
@@ -715,7 +730,7 @@ Synchronisation basis & one manual event per session &
   characterised. \\
 Camera & handheld, moving &
   Framing varied, but no hand action was occluded during annotation. \\
-Discarded low-coverage windows & not recorded & See Section~\ref{sec:stats}. \\
+Discarded low-coverage windows & not recorded (sessions 1--3); 911 (sessions 4--6) & See Section~\ref{sec:stats}. \\
 \hline
 \end{tabularx}
 \caption{Data-quality indicators for the dataset.}
@@ -744,8 +759,8 @@ boundaries of an activity.
 
 \textbf{Scope of the dataset.} The dataset was collected from two participants
 performing a scripted assembly task in a single laboratory environment. The
-final modelling data represent approximately 23 minutes of windowed activity,
-with one class accounting for more than one third of all windows. The dataset
+final modelling data represent approximately 43 minutes of windowed activity,
+with one class accounting for almost a quarter of all windows. The dataset
 is suitable for the comparative analysis of multimodal fusion methods and
 on-device feasibility undertaken in this thesis. Its size and limited variation
 do not make it suitable for assessing how the resulting models would perform
@@ -757,20 +772,23 @@ discusses their effect on the experimental results.
 \label{sec:ch3-summary}
 
 This chapter described the construction of the multimodal dataset. Inertial and
-acoustic data were streamed over Wi-Fi from four M5StickC Plus2 devices worn at the
-wrists, waist, and leg, using a UDP-based firmware that timestamps and
-sequence-numbers every packet so that the streams can be realigned after
-transmission. Two participants performed a scripted manual assembly task across
-three sessions in the Fraunhofer IPA Future Work Lab, alternating between
-performing the task and filming it on a handheld phone. Activity intervals were
-coded from the video in BORIS and transferred onto the sensor timeline after the
-sensor-to-video offset was fixed from a shared event located in Audacity. Each
-device stream was then corrected for audio dropouts and clock drift, decimated to
-80\,Hz for the inertial channels and resampled to 16\,kHz for audio, and segmented
-into overlapping two-second windows labelled by majority vote subject to a 70\,\%
-coverage threshold. The modelling dataset used in the remainder of this thesis is
-the dominant-wrist subset: 1380 paired inertial and audio windows over ten activity
-classes, single-channel audio, with a strong class imbalance dominated by
-screwdriving actions and with the data-quality limitations set out in
-Section~\ref{sec:quality}. This dataset is the common input to all of the models
-and experiments described in the following chapters.
+acoustic data were streamed over Wi-Fi from up to four M5StickC Plus2 devices worn
+at the wrists, the waist and, in sessions 1--3, the leg, using a UDP-based firmware
+that timestamps and sequence-numbers every packet so that the streams can be
+realigned after transmission. Two participants recorded six sessions in the
+Fraunhofer IPA Future Work Lab, alternating between performing the task and
+filming it on a handheld phone. Sessions 1--3 followed the full assembly sequence,
+and sessions 4--6 focused on longer bouts of individual activities to add data for
+under-represented classes. Activity intervals were coded from the video in BORIS
+and transferred onto the sensor timeline after the sensor-to-video offset was
+fixed from a shared event located in Audacity. Each device stream was then
+corrected for audio dropouts and clock drift, decimated to 80\,Hz for the inertial
+channels and resampled to 16\,kHz for audio, and segmented into overlapping
+two-second windows labelled by majority vote subject to a 70\,\% coverage
+threshold. The modelling dataset used in the remainder of this thesis is the
+dominant-wrist subset, with 2565 paired inertial and audio windows over nine
+activity classes, a class imbalance led by screwdriving and the data-quality
+limitations set out in Section~\ref{sec:quality}. Additional audio from the
+non-dominant wrist and the waist of sessions 4--6 is used only by the standalone
+audio model. This dataset is the common input to all of the models and
+experiments described in the following chapters.
