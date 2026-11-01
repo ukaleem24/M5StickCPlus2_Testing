@@ -71,26 +71,27 @@ pdfborder=0 0 0 % Keine Box um die Links!
 
 \begin{center}
 
-\LARGE{\textbf{Title of the master thesis}}\\
+\LARGE{\textbf{Multimodal Fusion of\\Wrist-Worn Sensors for\\Human Activity Recognition}}\\
 \vspace{1cm}
 
 
-\Large{\textbf{Master Thesis}}\\ 
+\Large{\textbf{Master Thesis}}\\
 \vspace{1cm}
 Submitted in Fulfilment of the\\
 Requirements for the Academic Degree\\
-M.Sc.\\
+M.Sc. Automotive Software Engineering\\
 \vspace{0.5cm}
 Dept. of Computer Science\\
 Chair of Computer Engineering
 \end{center}
-\vspace{3cm}
-Submitted by: Max Mustermann\\
-Student ID: 111222\\
-Date: 12.12.1212\\
-\vspace{0.3cm}\\
-Supervising tutor: Prof. Dr. W. Hardt \\
-(further supervisors)
+\vspace{1.5cm}
+Submitted by: Kaleem Ullah\\
+Student ID: 756026\\
+Date: [submission date]
+
+\medskip
+\noindent Supervising tutor: Florian Grabi M.Sc.\\
+Supervising tutor: Dr. Ariane Heller
 
 \end{titlepage}
 
@@ -99,9 +100,43 @@ Supervising tutor: Prof. Dr. W. Hardt \\
 %---------------------------------------------------------
 
 \addchap*{Abstract}
-\blindtext
+% Draft 2026-10-31. Numbers from the final train/validation split (HANDOFF.md,
+% Sec. 6-8). Re-check against Chapter 5 once it is written.
+Manual assembly is still largely done by hand, and knowing which step a worker
+is performing can support training, quality assurance and process analysis.
+Wrist-worn inertial sensors are a common basis for such activity recognition,
+but many assembly activities lead to similar wrist movements while producing
+clearly different sounds. This thesis investigates whether combining inertial
+and acoustic data from a single wrist-worn device improves the recognition of
+manual assembly activities, which fusion strategy is best suited for this, and
+whether the resulting models can run on the device itself.
+
+A dataset of nine activity classes was recorded with M5StickC Plus2 devices in
+six sessions with two participants, resulting in 2565 paired two-second windows
+of inertial and audio data. Single-modality convolutional neural networks, a
+random forest on hand-crafted features, and three fusion strategies were
+compared on a grouped train/validation split that prevents overlap between
+training and validation windows. The fusion strategies combine the two
+modalities at the input level, at the level of learned embeddings, and at the
+level of class probabilities. Reduced versions of the three fusion models were
+quantised to 8-bit integers and deployed with TensorFlow Lite Micro on the
+ESP32-based wearable.
+
+Fusion improved the recognition clearly over the inertial model alone, which
+reached 87.7\,\% accuracy, and over the audio model alone. The best result was
+achieved by a small early-fusion model with 93.2\,\% accuracy and a macro-F1
+score of 0.92, followed by decision-level fusion with class-specific weights
+and embedding-level fusion at about 90\,\%. On the device, all three fusion
+variants ran within the available memory, with an inference time of about 1.1
+to 1.4\,s per two-second window, and their quantised outputs matched the
+reference implementation. The results show that audio is a valuable addition
+to wrist-worn inertial sensing for assembly activities and that multimodal
+fusion is feasible on a low-cost microcontroller. They are, however, based on
+a small dataset from two participants and do not yet show how well the models
+generalise to new persons.
 \\\\
-\textbf{Keywords: Keyword1, Keyword2, Keyword3, ...max 5}
+\textbf{Keywords: human activity recognition, multimodal sensor fusion,
+wearable sensors, manual assembly, TinyML}
 
 %---------------------------------------------------------
 % Table of Contents, List of figures, List of Tables
@@ -116,43 +151,25 @@ Supervising tutor: Prof. Dr. W. Hardt \\
 %---------------------------------------------------------
 \twocolumn
 \addchap{List of Abbreviations}
-\begin{acronym}[Bash]
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
- \acro{KDE}{K Desktop Environment}
- \acro{SQL}{Structured Query Language}
- \acro{Bash}{Bourne-again shell}
- \acro{JDK}{Java Development Kit}
- \acro{VM}{Virtuelle Maschine}
- \acro{I2C}[I²C]{Inter-Integrated Circuit}
+\begin{acronym}[TFLM]
+ \acro{CNN}{Convolutional Neural Network}
+ \acro{EMG}{Electromyography}
+ \acro{FFT}{Fast Fourier Transform}
+ \acro{GAP}{Global Average Pooling}
+ \acro{GRU}{Gated Recurrent Unit}
+ \acro{HAR}{Human Activity Recognition}
+ \acro{IMU}{Inertial Measurement Unit}
+ \acro{LSTM}{Long Short-Term Memory}
+ \acro{MCU}{Microcontroller Unit}
+ \acro{PCM}{Pulse-Code Modulation}
+ \acro{PSRAM}{Pseudo-Static Random-Access Memory}
+ \acro{RNN}{Recurrent Neural Network}
+ \acro{SBC}{Single-Board Computer}
+ \acro{SoC}{System-on-Chip}
+ \acro{SRAM}{Static Random-Access Memory}
+ \acro{STFT}{Short-Time Fourier Transform}
+ \acro{TFLM}{TensorFlow Lite Micro}
+ \acro{UDP}{User Datagram Protocol}
 \end{acronym}
 
 \onecolumn

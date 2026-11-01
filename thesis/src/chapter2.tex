@@ -229,8 +229,7 @@ One-dimensional convolutional neural networks (CNNs) move small learned filters
 along the time axis and detect typical motion patterns~\cite{tao2018worker,
 alamin2019action}. If recurrent layers are added after the convolutions, as in
 the DeepConvLSTM architecture, the network can also learn in which order these
-patterns occur~\cite{zhou2025efficient}~{[}CITATION: Ord\'o\~nez and Roggen
-2016{]}. Attention-based models go further and learn which parts of the signal
+patterns occur~\cite{ordonez2016deep, zhou2025efficient}. Attention-based models go further and learn which parts of the signal
 are most important~\cite{gao2023mmtsa}. Recent surveys give an overview of
 these model types~\cite{kumar2024har}.
 
@@ -379,8 +378,7 @@ afterwards~\cite{chatterjee2020laso}.
 The last example shows the main concern about microphones at the workplace.
 Audio can contain speech, and most workers will not accept being recorded all
 day. In Germany, the introduction of technical devices that can be used to
-monitor employees also requires the consent of the works council
-{[}CITATION: BetrVG \S\,87 (1) Nr.~6{]}. The approaches above deal with this
+monitor employees also requires the consent of the works council~\cite{betrvg}. The approaches above deal with this
 problem in different ways. Audio is processed on the device and then
 deleted~\cite{chatterjee2020laso}, the sampling rate is reduced so far that
 speech cannot be understood~\cite{mollyn2022samosa}, or only features or
@@ -666,8 +664,7 @@ microcontrollers.}
 Audio models on microcontrollers are common for keyword spotting, where a
 small CNN detects spoken commands in a spectrogram of about one second of audio.
 The standard datasets and example applications for this task use a sampling
-rate of 16\,kHz~\cite{warden2018speech}~{[}CITATION: keyword spotting on
-microcontrollers{]}. If a model works on spectrograms, the feature extraction,
+rate of 16\,kHz~\cite{warden2018speech, zhang2017hello}. If a model works on spectrograms, the feature extraction,
 which consists of cutting the signal into short frames, computing a Fourier
 transform and applying a mel filter bank, also has to run on the
 microcontroller. It has to give the same values as the implementation used for

@@ -97,8 +97,8 @@ aligned parts by hand; drives the screws with a powered screwdriver; and places
 the finished item in a storage compartment beside the bench. The remainder of
 each repetition reverses the process, loosening and removing the screws and
 returning the parts to their boxes. Because the same operations recur several
-times per repetition, the screwdriving class dominates the dataset
-(Section~\ref{sec:stats}).
+times per repetition, screw tightening is the largest class of the dataset, as
+shown in Section~\ref{sec:stats}.
 
 Video of sessions 1--3 was annotated with a larger set of labels than the dataset
 finally uses. Across these sessions the coded label set contained fifteen to
@@ -181,8 +181,7 @@ packet contents to separate the two modalities. UDP was preferred to a
 connection-oriented protocol since it introduces no retransmission or reordering
 delay, keeping the sender simple and the timing of transmitted packets close to
 the timing of the underlying samples; the trade-off is that lost packets are not
-retransmitted by the transport and must be detected and handled in post-processing
-{[}CITATION{]}.
+retransmitted by the transport and must be detected and handled in post-processing~\cite{postel1980udp}.
 
 Each time a new IMU sample becomes available, an inertial packet is created that
 contains the six inertial values as text, a sequence number, and a device
@@ -221,8 +220,7 @@ packet of 1038\,bytes, which is well below the 1500-byte Ethernet MTU (Maximum
 Transmission Unit), so every audio packet can be transmitted as a single,
 unfragmented UDP datagram. Keeping packets under the MTU matters because IP
 fragmentation of a UDP datagram means that losing any one fragment discards the
-whole datagram, which can increase the effective audio packet loss rate
-{[}CITATION{]}.
+whole datagram, which can increase the effective audio packet loss rate~\cite{kent1987fragmentation}.
 
 \subsection{Microsecond Timestamping and Sequence Numbering}
 \label{sec:timestamps}
@@ -396,7 +394,7 @@ inertial sample, its timestamp relative to the beginning of the recording was
 compared with the annotated intervals. If the timestamp was within an activity
 interval, the associated activity label was attributed to the sample. Samples
 that were not part of any of the annotated intervals were assigned a reserved
-\texttt{unlabeled} marker. This avoids assigning an activity label to
+\texttt{unlabelled} marker. This avoids assigning an activity label to
 transition periods or moments in which no specific task was being performed.
 
 The assigned label was saved as a separate column along with the inertial
@@ -406,7 +404,7 @@ Since the audio and inertial data originate from the same device and were
 aligned to the video timeline, an audio segment corresponds to the activity
 represented by the inertial samples covering the same time interval.
 Consequently, transitions and untasked periods remain explicitly represented as
-\texttt{unlabeled}. Their treatment during the subsequent windowing process is
+\texttt{unlabelled}. Their treatment during the subsequent windowing process is
 described in Section~\ref{sec:windowing}.
 
 \section{Signal Conditioning}
@@ -568,13 +566,13 @@ of the same span; the two together form one paired multimodal example.
 
 The activity label of each window is decided using majority vote. The vote
 counts only samples that carry a valid activity label; samples tagged as
-\texttt{unlabeled} (Section~\ref{sec:labels}) are not included. The activity
+\texttt{unlabelled} (Section~\ref{sec:labels}) are not included. The activity
 that appears most often among the labelled samples is assigned to the window.
 
 To prevent transition periods from becoming part of the training data, a
 minimum label-coverage threshold of 70\,\% is applied. A window is kept only if
 at least 70\,\% of its samples have a valid activity label. A window with a high
-proportion of \texttt{unlabeled} samples is not assigned to an activity class
+proportion of \texttt{unlabelled} samples is not assigned to an activity class
 but is discarded instead, usually at transitions between activities. This
 method keeps windows with many transitions out of the training data while
 preserving windows that may have some activity-boundary overlap.
@@ -588,13 +586,13 @@ process.
   % labelled stream strip: 1 cm == 1 s
   \fill[black!8]  (0,0)   rectangle (3,0.6);
   \fill[black!22] (3,0)   rectangle (6.5,0.6);
-  \fill[pattern=north east lines] (6.5,0) rectangle (7.3,0.6); % unlabeled
+  \fill[pattern=north east lines] (6.5,0) rectangle (7.3,0.6); % unlabelled
   \fill[black!35] (7.3,0) rectangle (11,0.6);
   \draw (0,0) rectangle (11,0.6);
   \node at (1.5,0.3)  {activity A};
   \node at (4.75,0.3) {activity B};
   \node at (9.15,0.3) {activity C};
-  \node[above] at (6.9,0.62) {unlabeled};
+  \node[above] at (6.9,0.62) {unlabelled};
   \node[left] at (0,0.3) {stream};
   \draw[-{Latex[length=1.6mm]}] (0,-0.35) -- (11,-0.35) node[right] {time};
   % stacked 2 s windows (2 cm wide), each with its label to the right

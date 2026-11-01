@@ -24,9 +24,10 @@ are presented in Chapter~\ref{ch:results}.
 \section{Overview of the Experimental Design}
 \label{sec:design}
 
-The experiments compare models that differ in one respect at a time. All models
-are trained and evaluated on the same windows and the same train/validation
-split, and they use the same input normalisation and the same training settings.
+The experiments compare models that differ in one respect at a time. With the
+single exception of the standalone audio model explained at the end of this
+section, all models are trained and evaluated on the same windows and the same
+train/validation split, and they use the same input normalisation and the same training settings.
 Differences in accuracy can therefore be attributed to the model design and not
 to differences in the data or in the training procedure.
 
@@ -83,8 +84,7 @@ screwdriver in the spectrogram, and they need comparatively few parameters
 because the same small filters are applied across the whole window. For these
 reasons, CNNs are among the most widely used architectures in wearable activity
 recognition and in embedded audio classification~\cite{kumar2024har,
-tao2018worker, zhou2025efficient}~{[}CITATION: keyword spotting on
-microcontrollers{]}. Recurrent
+tao2018worker, zhou2025efficient, zhang2017hello}. Recurrent
 layers can capture the temporal order of a signal more explicitly. Small
 recurrent models can run on microcontrollers~\cite{zhou2025efficient}, but they
 process the time steps one after the other and use operations that are less
@@ -135,14 +135,13 @@ device firmware and applied to the live sensor data.
 
 Raw audio windows of 32\,000 samples are too long to be used directly as input
 to a small model. Each window is therefore converted into a log-mel spectrogram,
-a time-frequency representation that is widely used for sound classification
-{[}CITATION{]}. The conversion consists of three steps. First, a short-time
+a time-frequency representation that is widely used for sound classification~\cite{piczak2015environmental, koch2024recognition}. The conversion consists of three steps. First, a short-time
 Fourier transform (STFT) splits the signal into overlapping frames of 25\,ms (400
 samples), shifted by 10\,ms (160 samples), and computes the frequency spectrum of
 each frame with an FFT length of 512. Second, the magnitude spectrum of each frame
 is projected onto 40 frequency bands between 20\,Hz and 8\,kHz. The bands are
 spaced according to the mel scale, which resolves low frequencies more finely than
-high ones, similar to human hearing {[}CITATION{]}. Third, the natural logarithm of
+high ones, similar to human hearing~\cite{stevens1937scale}. Third, the natural logarithm of
 the band energies is taken. A small constant of $10^{-6}$ is added beforehand so
 that silent bands do not produce the logarithm of zero.
 
@@ -226,15 +225,14 @@ are shown in Figure~\ref{fig:audio-variants}.
 
 \begin{itemize}
   \item \textbf{Global average pooling (GAP).} The feature map is averaged over
-  both time and frequency {[}CITATION{]}. This is the standard approach and gives a compact model. However,
+  both time and frequency~\cite{lin2014network}. This is the standard approach and gives a compact model. However,
   averaging over time removes the information about how the sound develops within
   the window. Two activities with a similar average spectrum but a different
   temporal pattern, such as the regular strikes of a hammer and the steady sound
   of a screwdriver, can then become hard to separate.
   \item \textbf{Recurrent pooling (GRU).} The feature map is reshaped into a
   sequence of 49 time steps with 640 features each and passed through a
-  bidirectional gated recurrent unit (GRU) with 32 units per direction
-  {[}CITATION{]}. The GRU summarises the sequence while keeping its
+  bidirectional gated recurrent unit (GRU) with 32 units per direction~\cite{cho2014learning}. The GRU summarises the sequence while keeping its
   temporal order, so the model can use rhythm and envelope information.
   \item \textbf{Hybrid pooling.} The GAP vector and the GRU output are computed in
   parallel and concatenated. The GAP vector describes the average timbre of the
@@ -287,8 +285,9 @@ GRU, and (c) hybrid pooling, which concatenates both summaries.}
 
 Because audio content depends less on where the sensor is worn than inertial
 data does, the standalone audio model is trained on audio windows from the
-dominant wrist, the non-dominant wrist and the waist. This roughly
-triples the amount of acoustic training data. The pooled audio is used only for
+dominant wrist, the non-dominant wrist and the waist. The additional placements
+come from sessions 4--6 only, and they almost double the amount of acoustic
+training data. The pooled audio is used only for
 the standalone audio model. All fusion models use dominant-wrist audio
 exclusively, so that every audio window is paired with the inertial window from
 the same device and time interval.
@@ -510,7 +509,7 @@ Equation~\ref{eq:global-fusion}, all 21 candidate values could simply be tried.
 For nine weights, trying every combination would require $21^9$, or about
 800 billion, evaluations, which is not practical. The weights are therefore
 adjusted one at a time, while all others are kept fixed. This simple strategy is
-known as coordinate ascent {[}CITATION{]}. The name refers to the fact that only
+known as coordinate ascent~\cite{wright2015coordinate}. The name refers to the fact that only
 one coordinate of the weight vector, that is, one class weight, is changed in
 each step, and that a change is kept only if it raises the accuracy. The search
 proceeds as follows.
@@ -580,7 +579,7 @@ listed in Table~\ref{tab:features}, the two feature sets are concatenated into a
 feature level.
 
 A random forest with 300 trees is trained on these vectors, with balanced class
-weights to account for the class imbalance {[}CITATION{]}. Random forests need no feature scaling and give robust results on small
+weights to account for the class imbalance~\cite{breiman2001random, pedregosa2011scikit}. Random forests need no feature scaling and give robust results on small
 tabular datasets, which makes them a common reference point in activity
 recognition~\cite{chatterjee2020laso, koch2024recognition}.
 
@@ -628,7 +627,7 @@ keep the overall architecture but use fewer filters.
 
 The small backbones are used for the small embedding-level and decision-level
 fusion models. To reduce overfitting, three regularisation measures were added to
-them {[}CITATION{]}. L2 weight decay with a factor of $10^{-4}$ is applied to all
+them~\cite{srivastava2014dropout, szegedy2016rethinking}. L2 weight decay with a factor of $10^{-4}$ is applied to all
 learned layers, the dropout rates are raised to 0.4 and 0.5, and the loss function
 uses label smoothing of 0.1.
 
@@ -641,12 +640,11 @@ doubles in size. The validation data are never augmented.
   of up to $\pm 15^\circ$, applied jointly to the accelerometer and gyroscope axes
   to mimic small changes in how the device sits on the wrist, together with
   per-channel scaling (factor 0.9--1.1), additive noise (3\,\% of the channel's
-  standard deviation) and a mild time warp (speed factor 0.9--1.1)
-  {[}CITATION{]}.
+  standard deviation) and a mild time warp (speed factor 0.9--1.1)~\cite{um2017data}.
   \item \textbf{Spectrograms} are shifted in time by up to $\pm 10$ frames, with
   the frames that leave one end of the window re-entering at the other. In
   addition, random parts of the spectrogram are masked, following the SpecAugment
-  method originally proposed for speech recognition {[}CITATION{]}. Two blocks of
+  method originally proposed for speech recognition~\cite{park2019specaugment}. Two blocks of
   up to 20 consecutive frames and two blocks of up to 6 adjacent mel bands are
   overwritten with the mean value of the spectrogram. Because the hidden parts
   change from copy to copy, the model cannot depend on a single short moment or a
@@ -681,8 +679,7 @@ refer to the nine-class output layer.}
 \subsection{Software and Hardware Environment}
 \label{sec:environment}
 
-All models were implemented in Python~3.10 with TensorFlow~2.10 and Keras
-{[}CITATION{]}. Training ran on an NVIDIA GeForce
+All models were implemented in Python~3.10 with TensorFlow~2.10 and Keras~\cite{abadi2016tensorflow, chollet2015keras}. Training ran on an NVIDIA GeForce
 RTX~4070 Laptop GPU through the DirectML backend for Windows. This backend
 supports TensorFlow only up to version~2.10, which fixed the framework version for
 the whole project. Two parts of the pipeline could not run on the GPU with this
@@ -691,7 +688,7 @@ spectrograms was moved to the CPU, and the fused recurrent kernel of the GRU lay
 was replaced by an unrolled implementation. Both changes affect only where and how
 the computation is executed, not its result. Data preparation used NumPy, pandas
 and librosa~\cite{mcfee2015librosa}, and the classical baseline
-used scikit-learn {[}CITATION{]}.
+used scikit-learn~\cite{pedregosa2011scikit}.
 
 \subsection{Training Settings}
 \label{sec:settings}
@@ -701,7 +698,7 @@ Table~\ref{tab:training}. The class imbalance described in
 Section~\ref{sec:stats} is handled through class weights in the loss function.
 The weight of each class is inversely proportional to its frequency in the
 training split, so that errors on rare classes count more than errors on frequent
-ones {[}CITATION{]}. The training data themselves are left unchanged, without
+ones~\cite{pedregosa2011scikit}. The training data themselves are left unchanged, without
 oversampling or undersampling.
 
 \begin{table}[htbp]
@@ -712,7 +709,7 @@ oversampling or undersampling.
 \hline
 \textbf{Setting} & \textbf{Value} \\
 \hline
-Optimiser & Adam {[}CITATION{]} \\
+Optimiser & Adam~\cite{kingma2015adam} \\
 Learning rate & $10^{-3}$, constant \\
 Batch size & 32 \\
 Loss & Categorical cross-entropy (label smoothing 0.1 for the small backbones) \\
@@ -769,7 +766,7 @@ inference uses TensorFlow Lite for Microcontrollers~\cite{david2021tflm}, a
 version of
 TensorFlow Lite designed for devices without an operating system and without
 dynamic memory allocation. The FFT for the audio features is computed with the
-arduinoFFT library {[}CITATION{]}.
+arduinoFFT library~\cite{arduinofft}.
 
 The TensorFlow Lite Micro port available for this platform does not include the
 optimised neural network kernels that the chip manufacturer provides for newer
@@ -805,24 +802,24 @@ memory block that holds the intermediate results of a network.}
 \label{tab:firmware-variants}
 \end{table}
 
-\subsection{Model Conversion and Integer Quantization}
+\subsection{Model Conversion and Integer Quantisation}
 \label{sec:quantization}
 
 The trained Keras models store their weights as 32-bit floating-point numbers. For
 the microcontroller they are converted into the TensorFlow Lite format and
-quantized to 8-bit integers~\cite{zhou2025efficient}. In this form, each value is
+quantised to 8-bit integers~\cite{zhou2025efficient}. In this form, each value is
 represented by an integer $q$ between $-128$ and $127$, and the original real
 value $r$ is recovered as
 \begin{equation}
   r = s \cdot (q - z),
   \label{eq:quantization}
 \end{equation}
-where the scale $s$ and the zero point $z$ are fixed for each tensor. Quantization
+where the scale $s$ and the zero point $z$ are fixed for each tensor. Quantisation
 reduces the size of the weights by a factor of four. It also allows all
 computations to be carried out in integer arithmetic, which is the form best
 supported by TensorFlow Lite Micro on microcontrollers.
 
-Full integer quantization was used, so that not only the weights but also the
+Full integer quantisation was used, so that not only the weights but also the
 intermediate results and the input and output of each network are 8-bit integers.
 To choose suitable scales for the intermediate results, the converter needs to
 know which value ranges occur in practice. It therefore receives a representative
@@ -845,7 +842,7 @@ Figure~\ref{fig:export-pipeline} shows this process.
   \node[text width=3.4cm, right=of keras] (stats) {Training statistics,\\mel filter bank,\\fusion weights};
   \node[text width=3.4cm, right=of stats] (val) {Labelled validation\\windows};
   \node[text width=3.4cm, below=8mm of keras] (conv) {TFLite converter\\int8, representative\\training windows};
-  \node[text width=11.2cm, below=8mm of conv.south west, anchor=north west] (hdr) {C header files: model weights, quantization parameters, preprocessing constants, self-test windows};
+  \node[text width=11.2cm, below=8mm of conv.south west, anchor=north west] (hdr) {C header files: model weights, quantisation parameters, preprocessing constants, self-test windows};
   \node[text width=11.2cm, below=of hdr] (build) {PlatformIO build $\rightarrow$ firmware flashed to the M5StickC Plus2};
   \draw[flow] (keras) -- (conv);
   \draw[flow] (conv) -- (conv |- hdr.north);
@@ -867,7 +864,7 @@ the device are generated automatically from the training pipeline.}
 \textbf{Content} & \textbf{Source} & \textbf{Purpose} \\
 \hline
 Mean and standard deviation of each input channel & training split & standardisation of the live input \\
-Scale and zero point of input and output & TFLite converter & quantization of the input, conversion of the output back to real values \\
+Scale and zero point of input and output & TFLite converter & quantisation of the input, conversion of the output back to real values \\
 Mel filter bank ($257 \times 40$) & TensorFlow, as in training & computation of the log-mel spectrogram \\
 Hann window (400 values) & TensorFlow, as in training & weighting of each STFT frame \\
 Class names and fusion weights & training & output and decision-level fusion \\
@@ -886,13 +883,13 @@ Section~\ref{sec:inputs} was originally implemented in Python and applied offlin
 to complete recordings. On the device, the same steps have to be carried out on a
 single two-second window, in real time and with little memory.
 
-\textbf{Inertial data.} During data collection, the IMU delivered about 250
-samples per second, which were reduced to 80\,Hz by averaging consecutive samples,
+\textbf{Inertial data.} During data collection, the IMU delivered between
+about 220 and 250 samples per second, which were reduced to 80\,Hz by averaging consecutive samples,
 as described in Section~\ref{sec:decimation}. The firmware repeats this step. It
 collects all IMU samples that arrive during the two-second window and averages
 them in 160 consecutive groups, which corresponds to the 160 samples of a training
 window. The result is then resampled to 200 time steps by linear interpolation,
-standardised with the stored training statistics and quantized with the input
+standardised with the stored training statistics and quantised with the input
 scale of the network. To save memory, the last three steps are combined into a
 single pass that writes the result directly into the input tensor of the network.
 
@@ -981,7 +978,7 @@ When the device produces a wrong prediction, the cause can lie in two places.
 Either the network itself does not run correctly on the device, or the input it
 receives differs from the training data. To separate these two cases, each
 firmware runs a self-test at start-up. It uses one labelled window per class from
-the validation split. These windows were standardised and quantized in Python
+the validation split. These windows were standardised and quantised in Python
 with the same constants as on the device and are embedded in the firmware. They
 are written directly into the input tensor, bypassing the sensors and the
 on-device preprocessing, and the device reports how many of them are classified
@@ -1125,9 +1122,9 @@ model.
 \label{sec:device-measurements}
 
 The deployed models are evaluated in three ways. First, the accuracy of the
-quantized models is measured in Python on the full validation set and compared
+quantised models is measured in Python on the full validation set and compared
 with that of the original floating-point models, which isolates the effect of
-quantization. Second, the firmware reports the size of each model, the used part
+quantisation. Second, the firmware reports the size of each model, the used part
 of each tensor arena and the time needed for capture, preprocessing and inference,
 measured with the system timer of the microcontroller. Third, the self-test and
 live tests with the device worn on the wrist show whether the complete pipeline

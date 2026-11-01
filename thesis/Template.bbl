@@ -2,6 +2,11 @@
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\urlprefix}{URL }
 
+\bibitem{abadi2016tensorflow}
+Abadi, M., et~al.: {TensorFlow}: A system for large-scale machine learning. In:
+  12th USENIX Symposium on Operating Systems Design and Implementation (OSDI
+  16). pp. 265--283 (2016)
+
 \bibitem{alamin2019action}
 Al-Amin, M., Tao, W., Doell, D., Lingard, R., Yin, Z., Leu, M.C., Qin, R.:
   Action recognition in manufacturing assembly using multimodal sensor fusion.
@@ -36,9 +41,18 @@ Bonyani, M., Soleymani, M., Wang, C.: Multimodal action recognition for
   \url{https://media.bossard.com/-/media/bossard-group/website/documents/smart-factory-assembly/smart-tools/bossard-smarttool-overview-factsheet-en.pdf},
   product fact sheet. Accessed 30.10.2026
 
+\bibitem{breiman2001random}
+Breiman, L.: Random forests. Machine Learning  45(1),  5--32 (2001)
+
 \bibitem{bulling2014tutorial}
 Bulling, A., Blanke, U., Schiele, B.: A tutorial on human activity recognition
   using body-worn inertial sensors. ACM Computing Surveys  46(3),  1--33 (2014)
+
+\bibitem{betrvg}
+{Bundesrepublik Deutschland}: {Betriebsverfassungsgesetz (BetrVG), {\S}\,87
+  Mitbestimmungsrechte} (2001),
+  \url{https://www.gesetze-im-internet.de/betrvg/__87.html}, accessed
+  31.10.2026
 
 \bibitem{chatterjee2020laso}
 Chatterjee, S., Chakma, A., Gangopadhyay, A., Roy, N., Mitra, B., Chakraborty,
@@ -46,10 +60,25 @@ Chatterjee, S., Chakma, A., Gangopadhyay, A., Roy, N., Mitra, B., Chakraborty,
   annotate {IMU} data for human activity recognition. In: Proceedings of the
   2020 International Conference on Multimodal Interaction (ICMI '20) (2020)
 
+\bibitem{cho2014learning}
+Cho, K., van Merri{\"e}nboer, B., Gulcehre, C., Bahdanau, D., Bougares, F.,
+  Schwenk, H., Bengio, Y.: Learning phrase representations using {RNN}
+  encoder-decoder for statistical machine translation. In: Proceedings of the
+  2014 Conference on Empirical Methods in Natural Language Processing (EMNLP).
+  pp. 1724--1734 (2014)
+
 \bibitem{choi2022multistage}
 Choi, H., Beedu, A., Haresamudram, H., Essa, I.: Multi-stage based feature
   fusion of multi-modal data for human activity recognition (2022),
   arXiv:2211.04331
+
+\bibitem{chollet2015keras}
+Chollet, F., et~al.: Keras (2015), \url{https://keras.io}
+
+\bibitem{arduinofft}
+Condes, E.: {arduinoFFT}: Fast fourier transform for {Arduino} (2026),
+  \url{https://github.com/kosme/arduinoFFT}, software library. Accessed
+  31.10.2026
 
 \bibitem{david2021tflm}
 David, R., et~al.: {TensorFlow Lite Micro}: Embedded machine learning for
@@ -79,6 +108,15 @@ Hammerla, N., Pl{\"o}tz, T.: Let's (not) stick together: Pairwise similarity
   ACM International Joint Conference on Pervasive and Ubiquitous Computing
   (UbiComp '15). pp. 1041--1051 (2015)
 
+\bibitem{kent1987fragmentation}
+Kent, C.A., Mogul, J.C.: Fragmentation considered harmful. In: Proceedings of
+  the ACM Workshop on Frontiers in Computer Communications Technology (SIGCOMM
+  '87). pp. 390--401 (1987)
+
+\bibitem{kingma2015adam}
+Kingma, D.P., Ba, J.: Adam: A method for stochastic optimization. In:
+  International Conference on Learning Representations (ICLR) (2015)
+
 \bibitem{koch2024recognition}
 Koch, M., Pfitzinger, T., Schlenke, F., Kohlmorgen, F., Groll, R., W{\"o}hrle,
   H.: Recognition of human activities based on ambient audio and vibration
@@ -100,6 +138,10 @@ Kumar, P., Chauhan, S., Awasthi, L.K.: Human activity recognition ({HAR}) using
 Laput, G., Harrison, C.: Sensing fine-grained hand activity with smartwatches.
   In: Proceedings of the 2019 CHI Conference on Human Factors in Computing
   Systems (CHI '19). p. Paper 338. ACM (2019)
+
+\bibitem{lin2014network}
+Lin, M., Chen, Q., Yan, S.: Network in network. In: International Conference on
+  Learning Representations (ICLR) (2014)
 
 \bibitem{lukowicz2004recognizing}
 Lukowicz, P., Ward, J.A., Junker, H., St{\"a}ger, M., Tr{\"o}ster, G., Atrash,
@@ -144,11 +186,33 @@ Nakabayashi, T., Saito, H.: Multimodal human activity recognition on edge
   \url{https://www.nsc.org/getmedia/6a48bbb5-7d13-4478-b8e2-496383dbea20/msd-case-study-pepsico.pdf},
   case study. Accessed 30.10.2026. [VERIFY exact title]
 
+\bibitem{ordonez2016deep}
+Ord{\'o}{\~n}ez, F.J., Roggen, D.: Deep convolutional and {LSTM} recurrent
+  neural networks for multimodal wearable activity recognition. Sensors  16(1),
+   115 (2016)
+
 \bibitem{ouyang2022cosmo}
 Ouyang, X., Shuai, X., Zhou, J., Shi, I.W., Xie, Z., Xing, G., Huang, J.:
   Cosmo: Contrastive fusion learning with small data for multimodal human
   activity recognition. In: Proceedings of the 28th Annual International
   Conference on Mobile Computing and Networking (MobiCom '22) (2022)
+
+\bibitem{park2019specaugment}
+Park, D.S., Chan, W., Zhang, Y., Chiu, C.C., Zoph, B., Cubuk, E.D., Le, Q.V.:
+  {SpecAugment}: A simple data augmentation method for automatic speech
+  recognition. In: Proceedings of Interspeech 2019. pp. 2613--2617 (2019)
+
+\bibitem{pedregosa2011scikit}
+Pedregosa, F., et~al.: Scikit-learn: Machine learning in {Python}. Journal of
+  Machine Learning Research  12,  2825--2830 (2011)
+
+\bibitem{piczak2015environmental}
+Piczak, K.J.: Environmental sound classification with convolutional neural
+  networks. In: IEEE 25th International Workshop on Machine Learning for Signal
+  Processing (MLSP) (2015)
+
+\bibitem{postel1980udp}
+Postel, J.: User datagram protocol (1980), rFC 768
 
 \bibitem{proglove2023bmw}
 {ProGlove (Workaround GmbH)}: Case study {BMW Group}: Wearable scanners in
@@ -176,15 +240,38 @@ Sherafat, B., Rashidi, A., Lee, Y.C., Ahn, C.R.: Automated activity recognition
   of construction equipment using a data fusion approach (2019),
   arXiv:1906.02070
 
+\bibitem{srivastava2014dropout}
+Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., Salakhutdinov, R.:
+  Dropout: A simple way to prevent neural networks from overfitting. Journal of
+  Machine Learning Research  15,  1929--1958 (2014)
+
+\bibitem{stevens1937scale}
+Stevens, S.S., Volkmann, J., Newman, E.B.: A scale for the measurement of the
+  psychological magnitude pitch. The Journal of the Acoustical Society of
+  America  8(3),  185--190 (1937)
+
 \bibitem{stiefmeier2008wearable}
 Stiefmeier, T., Roggen, D., Ogris, G., Lukowicz, P., Tr{\"o}ster, G.: Wearable
   activity tracking in car manufacturing. IEEE Pervasive Computing  7(2),
   42--50 (2008)
 
+\bibitem{szegedy2016rethinking}
+Szegedy, C., Vanhoucke, V., Ioffe, S., Shlens, J., Wojna, Z.: Rethinking the
+  inception architecture for computer vision. In: Proceedings of the IEEE
+  Conference on Computer Vision and Pattern Recognition (CVPR). pp. 2818--2826
+  (2016)
+
 \bibitem{tao2018worker}
 Tao, W., Lai, Z.H., Leu, M.C., Yin, Z.: Worker activity recognition in smart
   manufacturing using {IMU} and {sEMG} signals with convolutional neural
   networks. Procedia Manufacturing  26,  1159--1166 (2018)
+
+\bibitem{um2017data}
+Um, T.T., Pfister, F.M.J., Pichler, D., Endo, S., Lang, M., Hirche, S.,
+  Fietzek, U., Kuli{\'c}, D.: Data augmentation of wearable sensor data for
+  {Parkinson's} disease monitoring using convolutional neural networks. In:
+  Proceedings of the 19th ACM International Conference on Multimodal
+  Interaction (ICMI '17). pp. 216--220 (2017)
 
 \bibitem{gao2024wearables}
 {U.S. Government Accountability Office}: Workplace safety and health: Ergonomic
@@ -202,11 +289,19 @@ Ward, J.A., Lukowicz, P., Tr{\"o}ster, G., Starner, T.E.: Activity recognition
 Warden, P.: Speech commands: A dataset for limited-vocabulary speech
   recognition (2018), arXiv:1804.03209
 
+\bibitem{wright2015coordinate}
+Wright, S.J.: Coordinate descent algorithms. Mathematical Programming  151(1),
+  3--34 (2015)
+
 \bibitem{yoshimura2024openpack}
 Yoshimura, N., Morales, J., Maekawa, T., Hara, T.: {OpenPack}: A large-scale
   dataset for recognizing packaging works in {IoT}-enabled logistic
   environments. In: IEEE International Conference on Pervasive Computing and
   Communications (PerCom). pp. 90--97 (2024)
+
+\bibitem{zhang2017hello}
+Zhang, Y., Suda, N., Lai, L., Chandra, V.: Hello edge: Keyword spotting on
+  microcontrollers (2017), arXiv:1711.07128
 
 \bibitem{zhou2025efficient}
 Zhou, H., Zhang, X., Feng, Y., Zhang, T., Xiong, L.: Efficient human activity

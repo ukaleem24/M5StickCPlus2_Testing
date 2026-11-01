@@ -116,3 +116,26 @@ Inference 1417 ms (early fusion) / 1066 ms (decision) / 1068 ms (embedding); one
 ## 9. Things the author may still provide
 
 Photos of the device on the wrist / workbench (optional). Literature list for Discussion comparisons (later, after his Ch. 2 rewrite).
+
+## 10. Session 2026-10-31 (done / open)
+
+Done: title page (author, programme, supervisors; date still "[submission date]"),
+draft abstract (numbers from Sec. 6-8, re-check after Ch. 5), real acronym list,
+Introduction integrated (`src/Introduction.tex`, label `ch:intro`) with citations,
+British spelling everywhere (label keys `sec:quantization`/`eq:quantization` unchanged),
+Sec. 4 items 1-4 fixed, 20 placeholders filled (bib "Group D").
+
+Open:
+- Thesis Structure (1.4) -- after Ch. 5-7.
+- 5 placeholders: orientation/placement source (2.3), Arduino/Jetson data sheets
+  (Fig. 2.3), recurrent-layer conversion on MCUs (2.6; NOTE the GRU unrolling in
+  4.7.1 was for DirectML, not the MCU), Fraunhofer IPA Future Work Lab (3.2),
+  80 Hz choice (3.6.2).
+- DATA ISSUE: pooled audio folder (`data/windowed_data_combined_no_ci/right_hand_dominant/audio`)
+  has 4829 wavs = 2565 dominant-wrist + 2224 non-dominant/waist + **40 `remove_screws`
+  windows filed under insert_screws** (no IMU pair). Ch. 3 says remove screws was excluded.
+  Affects only the standalone audio model; decide whether to remove and re-run.
+- Supervisor-style review (chat 2026-10-31): B1 validation set used for epoch
+  selection + fusion-weight tuning + reporting; B2 single run per model; B3 two
+  participants; B4 "real-time" undefined; B5-B8 Ch. 3 sync/decimation/70 %/null class;
+  C1 fusion terminology in Ch. 1 objective 2; C3 Ch. 3 style pass; E1 bib formatting.

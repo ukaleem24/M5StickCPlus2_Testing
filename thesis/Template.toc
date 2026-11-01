@@ -58,7 +58,7 @@
 \contentsline {subsection}{\numberline {4.7.2}Training Settings}{57}{subsection.4.7.2}%
 \contentsline {section}{\numberline {4.8}Deployment on the Wearable Device}{58}{section.4.8}%
 \contentsline {subsection}{\numberline {4.8.1}Target Platform and Software Stack}{58}{subsection.4.8.1}%
-\contentsline {subsection}{\numberline {4.8.2}Model Conversion and Integer Quantization}{59}{subsection.4.8.2}%
+\contentsline {subsection}{\numberline {4.8.2}Model Conversion and Integer Quantisation}{59}{subsection.4.8.2}%
 \contentsline {subsection}{\numberline {4.8.3}On-Device Signal Processing}{61}{subsection.4.8.3}%
 \contentsline {subsection}{\numberline {4.8.4}Firmware Structure and Inference Loop}{61}{subsection.4.8.4}%
 \contentsline {subsection}{\numberline {4.8.5}Verification of the Deployment Pipeline}{63}{subsection.4.8.5}%
